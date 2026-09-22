@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.tools/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+/public/third-party-notices.txt
