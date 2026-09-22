@@ -1,0 +1,10 @@
+{
+    "verilog.linting.linter": "none",
+
+    "cSpell.enabledFileTypes": {
+        "markdown": false,
+        "verilog": false,
+        "systemverilog": false,
+        "jsonc": false
+    }
+}
