@@ -4,6 +4,7 @@ module rom(
 );
     always_comb begin
         case (addr)                         // addr  data  assembler
+                            // 命令 即値
             4'b0000: data = 8'b0110_0000;   // 0   8'h60  IN  B
             4'b0001: data = 8'b1001_0000;   // 1   8'h90  OUT B
             4'b0010: data = 8'b0011_1101;   // 2   8'h3D  MOV A, 13
