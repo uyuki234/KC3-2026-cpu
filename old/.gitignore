@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.tools/
+public/engine/
+public/materials/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.env.local

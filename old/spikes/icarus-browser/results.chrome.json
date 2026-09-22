@@ -1,0 +1,166 @@
+{
+  "date": "2026-09-19",
+  "engineRevision": "a275a9ac28c59db1130505973644c9a3754ec1d7",
+  "status": "PASS",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "crossOriginIsolated": false
+  },
+  "checks": [
+    {
+      "name": "12 instruction forms, both JNC branches, reset and VCD",
+      "pass": true,
+      "compileMs": 149.90000000596046,
+      "totalMs": 198.70000000298023,
+      "vcdBytes": 2788,
+      "states": [
+        [
+          1,
+          14,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          3,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          4,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          7,
+          0,
+          5,
+          0,
+          0
+        ],
+        [
+          8,
+          0,
+          5,
+          0,
+          0
+        ],
+        [
+          9,
+          5,
+          5,
+          0,
+          0
+        ],
+        [
+          10,
+          5,
+          5,
+          0,
+          0
+        ],
+        [
+          11,
+          10,
+          5,
+          0,
+          0
+        ],
+        [
+          12,
+          10,
+          10,
+          0,
+          0
+        ],
+        [
+          13,
+          10,
+          10,
+          10,
+          0
+        ],
+        [
+          14,
+          10,
+          10,
+          3,
+          0
+        ],
+        [
+          0,
+          10,
+          10,
+          3,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "B overflow and MOV clearing carry before JNC",
+      "pass": true
+    },
+    {
+      "name": "PC wraps from 15 to 0",
+      "pass": true
+    },
+    {
+      "name": "Replay input history changes only the subsequent states",
+      "pass": true,
+      "totalMs": 236.59999999403954
+    },
+    {
+      "name": "Wrong learner addition changes real simulation output",
+      "pass": true
+    },
+    {
+      "name": "Syntax error reports original source filename and line",
+      "pass": true,
+      "diagnostics": [
+        "/td4.v:19: syntax error",
+        "/td4.v:19: error: Syntax error in continuous assignment",
+        "/td4.v:19: syntax error",
+        "/td4.v:19: error: Invalid module item."
+      ]
+    },
+    {
+      "name": "All 256 adder input pairs including carry",
+      "pass": true
+    },
+    {
+      "name": "Register holds between rising edges and when not selected",
+      "pass": true
+    },
+    {
+      "name": "4096-cycle bounded trace",
+      "pass": true,
+      "compileMs": 137.69999998807907,
+      "totalMs": 260.29999999701977,
+      "vcdBytes": 536706
+    },
+    {
+      "name": "Infinite simulation can be terminated while UI remains responsive",
+      "pass": true,
+      "cancelled": true,
+      "ticks": 25
+    }
+  ]
+}
