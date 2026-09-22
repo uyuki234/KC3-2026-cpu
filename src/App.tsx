@@ -378,6 +378,13 @@ export default function App() {
                   <code>next_b = a;</code>{' '}
                   は、今のAを「次にBへ記憶する値」にします。記憶する処理は用意済みです。共通処理で値を決めてから、命令に応じて必要なものだけ上書きします。
                 </p>
+                <details className="hint-more">
+                  <summary>さらにヒント：使える命令</summary>
+                  <p data-testid="hint-uses-assignment">
+                    この考え方は <code>MOV A, Im</code>、<code>JMP Im</code>、<code>IN B</code>、
+                    <code>OUT B</code>、<code>OUT Im</code> でそのまま活用できます。
+                  </p>
+                </details>
               </details>
               <details>
                 <summary>ヒント：加算と桁上がり</summary>
@@ -385,6 +392,12 @@ export default function App() {
                   <code>{'{上位1bit, 下位4bit}'}</code> と連結すると、5bitの結果を受け取れます。15 +
                   1 は <code>1_0000</code>。結果の下位4bitは0、桁上がりは1です。
                 </p>
+                <details className="hint-more">
+                  <summary>さらにヒント：使える命令</summary>
+                  <p data-testid="hint-uses-addition">
+                    この考え方は <code>ADD A, Im</code> と <code>ADD B, Im</code> で活用できます。
+                  </p>
+                </details>
               </details>
               <details>
                 <summary>ヒント：条件で次の番地を選ぶ</summary>
@@ -393,6 +406,12 @@ export default function App() {
                   <code>cf</code> です。<code>next_cf</code>{' '}
                   は次のクロックで記憶する値なので、区別しましょう。
                 </p>
+                <details className="hint-more">
+                  <summary>さらにヒント：使える命令</summary>
+                  <p data-testid="hint-uses-condition">
+                    この考え方は <code>JNC Im</code> で活用できます。
+                  </p>
+                </details>
               </details>
               <details>
                 <summary>対応するSystemVerilogの構文</summary>

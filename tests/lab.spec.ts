@@ -25,6 +25,28 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   await page.screenshot({ path: 'test-results/lab-desktop.png', fullPage: true });
   expect(errors).toEqual([]);
 });
+test('ヒントを二段階で開き、活用できる命令を確認できる', async ({ page }) => {
+  await page.goto('./');
+  const assignmentUses = page.getByTestId('hint-uses-assignment');
+  await expect(assignmentUses).not.toBeVisible();
+  await page.getByText('ヒント：次の値に代入する', { exact: true }).click();
+  await expect(assignmentUses).not.toBeVisible();
+  await page.getByText('さらにヒント：使える命令', { exact: true }).nth(0).click();
+  await expect(assignmentUses).toContainText('MOV A, Im');
+  await expect(assignmentUses).toContainText('JMP Im');
+  await expect(assignmentUses).toContainText('IN B');
+  await expect(assignmentUses).toContainText('OUT B');
+  await expect(assignmentUses).toContainText('OUT Im');
+
+  await page.getByText('ヒント：加算と桁上がり', { exact: true }).click();
+  await page.getByText('さらにヒント：使える命令', { exact: true }).nth(1).click();
+  await expect(page.getByTestId('hint-uses-addition')).toContainText('ADD A, Im');
+  await expect(page.getByTestId('hint-uses-addition')).toContainText('ADD B, Im');
+
+  await page.getByText('ヒント：条件で次の番地を選ぶ', { exact: true }).click();
+  await page.getByText('さらにヒント：使える命令', { exact: true }).nth(2).click();
+  await expect(page.getByTestId('hint-uses-condition')).toContainText('JNC Im');
+});
 test('ROMを自由に編集し、実行・停止・再開・入力変更・リセットする', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);

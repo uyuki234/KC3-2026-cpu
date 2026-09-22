@@ -349,6 +349,23 @@ main {
 .hints details:last-child {
   border: 0;
 }
+.hints .hint-more {
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border: 1px solid #e3e9f0;
+  border-radius: 7px;
+  background: #f7f9fc;
+}
+.hints .hint-more:last-child {
+  border: 1px solid #e3e9f0;
+}
+.hints .hint-more summary {
+  color: #315ce5;
+  font-size: 11px;
+}
+.hints .hint-more p {
+  margin-top: 8px;
+}
 summary {
   color: #4f6686;
   font-size: 12px;
