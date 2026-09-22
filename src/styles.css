@@ -187,10 +187,70 @@ main {
 .intro .eyebrow {
   color: #315ce5;
 }
-.intro p:last-child {
+.intro-copy {
+  flex: 1;
+  min-width: 0;
+}
+.intro-description {
   font-size: 13px;
   line-height: 1.9;
   margin: 0;
+}
+.resource-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 20px;
+}
+.resource-link {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  min-width: 150px;
+  padding: 10px 13px;
+  border: 1px solid #dbe2eb;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px #2339570a;
+  color: #273b58;
+  line-height: 1.3;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+a.resource-link:hover {
+  border-color: #9eb2ec;
+  box-shadow: 0 5px 14px #23395712;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.resource-link small {
+  grid-column: 1 / -1;
+  color: #70809a;
+  font:
+    8px Consolas,
+    monospace;
+  letter-spacing: 1.1px;
+}
+.resource-link strong {
+  margin-top: 3px;
+  font-size: 11px;
+}
+.resource-link > span {
+  align-self: end;
+  color: #315ce5;
+  font-size: 11px;
+}
+.resource-link.pending {
+  min-width: 190px;
+  background: #f2f4f6;
+  border-style: dashed;
+}
+.resource-link.pending > span {
+  color: #8995a5;
+  font-size: 9px;
+  margin-left: 10px;
 }
 .intro-guide {
   width: 330px;
@@ -943,7 +1003,7 @@ footer {
   .intro-guide li {
     font-size: 11px;
   }
-  .intro p:last-child {
+  .intro-description {
     font-size: 12px;
   }
   .build-grid,
@@ -1046,6 +1106,17 @@ footer {
     border: 0;
     border-radius: 7px;
     width: 100%;
+  }
+  .resource-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .resource-link,
+  .resource-link.pending {
+    min-width: 0;
+  }
+  .resource-link.pending {
+    grid-column: 1 / -1;
   }
   .intro-guide ol {
     margin: 10px 0;

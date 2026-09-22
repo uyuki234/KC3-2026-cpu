@@ -260,18 +260,45 @@ export default function App() {
       </header>
       <main id="top">
         <section className="intro">
-          <div>
+          <div className="intro-copy">
             <p className="eyebrow">VERILOGで学ぶCPU自作入門</p>
             <h1>
               命令を書こう。
               <br />
               <span>自分のCPUを動かそう。</span>
             </h1>
-            <p>
+            <p className="intro-description">
               次の値を決める回路を、あなたの手で。
               <br />
               8つの命令処理を埋めて、ROMのプログラムを実行しよう。
             </p>
+            <nav className="resource-links" aria-label="講義の関連リンク">
+              <span className="resource-link pending">
+                <small>SLIDES</small>
+                <strong>講義スライド</strong>
+                <span>講義終了後、公開予定</span>
+              </span>
+              <a
+                className="resource-link"
+                href="https://github.com/uyuki234/KC3-2026-cpu"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <small>GITHUB</small>
+                <strong>リポジトリ</strong>
+                <span aria-hidden="true">↗</span>
+              </a>
+              <a
+                className="resource-link"
+                href="https://kc3.me/study/4246/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <small>KC3</small>
+                <strong>講義ページ</strong>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </nav>
           </div>
           <div className="intro-guide">
             <span className="edition">4 BIT CPU / 12 INSTRUCTIONS</span>

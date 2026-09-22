@@ -4,6 +4,12 @@
 
 参加者が `always_comb` の命令処理を記述し、命令テストとROMの実行で動作を確かめるWebアプリです。React + TypeScript + Viteで構成し、解析・テスト・実行はブラウザのWeb Worker内で行います。
 
+## 関連リンク
+
+- 講義スライド：講義終了後、公開予定
+- [GitHubリポジトリ](https://github.com/uyuki234/KC3-2026-cpu)
+- [KC3 講義ページ](https://kc3.me/study/4246/)
+
 ## 講義での使い方
 
 1. CPUエディターにある8命令の空欄（`;` の前）へ処理を書きます。初期ROMで使わない **MOV B, Im / MOV A, B / MOV B, A / IN A** は記入済みです。

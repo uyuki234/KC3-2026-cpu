@@ -9,6 +9,20 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('./');
   await expect(page.getByRole('button', { name: /1命令進/ })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /KC3.*講義ページ/ })).toHaveAttribute(
+    'href',
+    'https://kc3.me/study/4246/',
+  );
+  await expect(page.getByRole('link', { name: /GITHUB.*リポジトリ/ })).toHaveAttribute(
+    'href',
+    'https://github.com/uyuki234/KC3-2026-cpu',
+  );
+  await expect(page.getByText('講義終了後、公開予定', { exact: true })).toBeVisible();
+  await expect(page.locator('.resource-link strong')).toHaveText([
+    '講義スライド',
+    'リポジトリ',
+    '講義ページ',
+  ]);
   await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
     '参考：記入済み',
   );
