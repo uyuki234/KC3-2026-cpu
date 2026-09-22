@@ -30,6 +30,12 @@ describe('演習の命令テスト', () => {
       .map((i) => i.op);
     expect(passing).toEqual([7, 1, 4, 2]);
   });
+  it('未実装の8命令を1行の空文で表示する', () => {
+    expect(initialCode).toContain("4'b0000: ; // ADD A, IMM");
+    expect(initialCode).toContain("4'b0110: ; // IN B");
+    expect(initialCode).not.toContain('TODO');
+    expect(initialCode.match(/^\s*4'b[01]{4}: ; \/\//gm)).toHaveLength(8);
+  });
   it('別の正しい書き方も受け入れる', () => {
     const changed = answerCode
       .replace('{next_cf, next_a} = a + imm;', "{next_cf, next_a} = {1'b0, a} + {1'b0, imm};")
@@ -109,7 +115,7 @@ describe('公開ROMとシミュレーション', () => {
   });
   it('ダウンロード用CPUは固定ポート宣言を正し、参加者コードを組み込む', () => {
     expect(cpuDownload(initialCode)).not.toMatch(/led\s*;/);
-    expect(cpuDownload(initialCode)).toContain('TODO');
+    expect(cpuDownload(initialCode)).toContain("4'b0000: ; // ADD A, IMM");
   });
 });
 describe('SystemVerilogの対応範囲', () => {
@@ -170,5 +176,13 @@ describe('SystemVerilogの対応範囲', () => {
     expect(validateProject({ version: 1, cpu: initialCode, rom: initialRom }).cpu).toBe(
       initialCode,
     );
+  });
+  it('未編集の旧雛形だけを1行形式へ移行する', async () => {
+    const { legacyInitialCode } = await import('./td4');
+    expect(validateProject({ version: 1, cpu: legacyInitialCode, rom: initialRom }).cpu).toBe(
+      initialCode,
+    );
+    const edited = legacyInitialCode.replace('// TODO:', '// 自分のメモ:');
+    expect(validateProject({ version: 1, cpu: edited, rom: initialRom }).cpu).toBe(edited);
   });
 });

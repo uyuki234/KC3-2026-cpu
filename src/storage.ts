@@ -1,4 +1,4 @@
-import { initialCode, initialRom } from './td4';
+import { initialCode, initialRom, legacyInitialCode } from './td4';
 export const storageKey = 'kc3-td4-instructions-v1';
 export interface Project {
   version: 1;
@@ -16,7 +16,8 @@ export function validateProject(input: unknown): Project {
     p.rom.length > 20000
   )
     throw new Error('この教材のプロジェクトJSONを選んでください（各コード20,000文字以内）。');
-  return { version: 1, cpu: p.cpu, rom: p.rom };
+  const cpu = p.cpu.replaceAll('\r\n', '\n') === legacyInitialCode ? initialCode : p.cpu;
+  return { version: 1, cpu, rom: p.rom };
 }
 export function loadProject(): { project: Project; warning: string } {
   const fresh: Project = { version: 1, cpu: initialCode, rom: initialRom };

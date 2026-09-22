@@ -33,13 +33,19 @@ export const answerCode = originalCpu
   .slice(combStart, originalCpu.lastIndexOf('endmodule'))
   .trim()
   .replace(/^    /gm, '');
-export const initialCode = answerCode.replace(
-  /^(\s*4'b([01]{4}):)\s*(.*?)\s*\/\/\s*(.*)$/gm,
-  (line, prefix, op, _expr, label) => {
-    if ([7, 1, 4, 2].includes(parseInt(op, 2))) return line + '（参考：記入済み）';
-    return `${prefix} begin // ${label}\n            // TODO: 次の値を決めよう\n        end`;
-  },
-);
+function createInitialCode(compact: boolean) {
+  return answerCode.replace(
+    /^(\s*4'b([01]{4}):)\s*(.*?)\s*\/\/\s*(.*)$/gm,
+    (line, prefix, op, _expr, label) => {
+      if ([7, 1, 4, 2].includes(parseInt(op, 2))) return line + '（参考：記入済み）';
+      return compact
+        ? `${prefix} ; // ${label}`
+        : `${prefix} begin // ${label}\n            // TODO: 次の値を決めよう\n        end`;
+    },
+  );
+}
+export const initialCode = createInitialCode(true);
+export const legacyInitialCode = createInitialCode(false);
 export const initialRom = originalRom.replaceAll('\r\n', '\n');
 export const cpuDownload = (comb: string) =>
   originalCpu.slice(0, combStart).replace(/(output\s+logic\s+\[3:0\]\s+led)\s*;/, '$1') +

@@ -12,6 +12,10 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
     '参考：記入済み',
   );
+  await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
+    "4'b0110: ; // IN B",
+  );
+  await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).not.toContainText('TODO');
   await page.getByRole('button', { name: 'すべての命令をテスト' }).click();
   await expect(page.getByTestId('completion')).toHaveText('4 / 12', { timeout: 30000 });
   await expect(page.getByRole('button', { name: 'すべての命令をテスト' })).toBeEnabled();
@@ -114,9 +118,13 @@ test('保存・再読込・JSON入出力・置き換えの取り消し', async (
   );
   await expect(page.getByTestId('completion')).toHaveText('0 / 12');
   await page.getByRole('button', { name: '配布コードに戻す' }).click();
-  await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText('TODO');
+  await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
+    "4'b0000: ; // ADD A, IMM",
+  );
   await page.getByRole('button', { name: '置き換えを取り消す' }).click();
-  await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).not.toContainText('TODO');
+  await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
+    '{next_cf, next_a}',
+  );
   await page
     .locator('input[type=file]')
     .setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{}') });
