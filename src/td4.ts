@@ -49,7 +49,6 @@ export const legacyInitialCode = createInitialCode(false);
 export const initialRom = originalRom.replaceAll('\r\n', '\n');
 export const cpuDownload = (comb: string) =>
   originalCpu.slice(0, combStart).replace(/(output\s+logic\s+\[3:0\]\s+led)\s*;/, '$1') +
-  '    wire [3:0] opcode = opecode;\n\n' +
   '    ' +
   comb.trim().replaceAll('\n', '\n    ') +
   '\nendmodule\n';
@@ -60,7 +59,6 @@ const signals: Signals = {
   ip: { width: 4 },
   out: { width: 4 },
   opcode: { width: 4 },
-  opecode: { width: 4 },
   imm: { width: 4 },
   switch: { width: 4 },
   next_a: { width: 4, writable: true },
@@ -75,7 +73,6 @@ export function compileCpu(source: string) {
     const next = evaluator({
       ...state,
       opcode: instruction >> 4,
-      opecode: instruction >> 4,
       imm: instruction & 15,
       switch: input,
     });

@@ -28,8 +28,8 @@ module cpu(
         end
     end
 
-    logic [3:0] opecode, imm;       // ROMのデータを命令部分と即値部分に分ける
-    assign opecode  = data[7:4];    // 上位4ビットから実行する命令を取り出す
+    logic [3:0] opcode, imm;        // ROMのデータを命令部分と即値部分に分ける
+    assign opcode  = data[7:4];     // 上位4ビットから実行する命令を取り出す
     assign imm      = data[3:0];    // 下位4ビットを命令の即値として使う
     assign addr     = ip;           // 現在の命令位置をROMの読み出し先に指定
     assign led      = out;          // 出力レジスタの内容をLEDへ送る
@@ -43,7 +43,7 @@ module cpu(
         next_out    = out;          // LEDの表示を維持
 
         // 命令に応じて、変更が必要な次状態だけを書き換える
-        unique case (opecode)
+        unique case (opcode)
             4'b0000:                                    // ADD A, IMM
             4'b0101:                                    // ADD B, IMM
             4'b0011:                                    // MOV A, IMM

@@ -23,7 +23,7 @@ test('対応する式とCPUの次状態をIcarus Verilogと照合する', async 
   const cpu = readFileSync('code/td4/cpu.sv', 'utf8');
   const comb = cpu.slice(cpu.indexOf('    always_comb'), cpu.lastIndexOf('endmodule')).trim();
   const signals: Signals = {};
-  for (const name of ['a', 'b', 'cf', 'ip', 'out', 'imm', 'switch', 'opecode'])
+  for (const name of ['a', 'b', 'cf', 'ip', 'out', 'imm', 'switch', 'opcode'])
     signals[name] = { width: name === 'cf' ? 1 : 4 };
   for (const name of ['next_a', 'next_b', 'next_cf', 'next_ip', 'next_out'])
     signals[name] = { width: name === 'next_cf' ? 1 : 4, writable: true };
@@ -41,7 +41,7 @@ test('対応する式とCPUの次状態をIcarus Verilogと照合する', async 
         out: (x + 7) % 16,
         imm: byte & 15,
         switch: (x + 3) % 16,
-        opecode: byte >> 4,
+        opcode: byte >> 4,
       };
       const result = evaluator(input);
       const keys = ['next_a', 'next_b', 'next_cf', 'next_ip', 'next_out'];
@@ -53,7 +53,7 @@ test('対応する式とCPUの次状態をIcarus Verilogと照合する', async 
     packed_results=0;
     for (x=0; x<16; x=x+1) begin
       a=x; b=(x+5)%16; cf=x%2; ip=x; out=(x+7)%16;
-      imm=byte_index%16; switch=(x+3)%16; opecode=byte_index/16;
+      imm=byte_index%16; switch=(x+3)%16; opcode=byte_index/16;
       #1; packed_results={packed_results[254:0],next_a,next_b,next_cf,next_ip,next_out};
     end
     $display("CPU,%068h",packed_results);
@@ -98,7 +98,7 @@ test('対応する式とCPUの次状態をIcarus Verilogと照合する', async 
     stimulus.push(`result=${expr}; $display("EXPR,%0d", result);`);
   }
   const source = `module tb;
-logic [3:0] a,b,ip,out,imm,switch,opecode,next_a,next_b,next_ip,next_out;
+logic [3:0] a,b,ip,out,imm,switch,opcode,next_a,next_b,next_ip,next_out;
 logic cf,next_cf; logic [7:0] result;
 logic [271:0] packed_results; integer byte_index,x;
 ${comb}
