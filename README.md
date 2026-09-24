@@ -1,55 +1,26 @@
 # Verilogで学ぶCPU自作入門 — TD4ハンズオン
 
-公開先: **https://uyuki234.github.io/KC3-2026-cpu/**
-
-コード: **https://github.com/uyuki234/KC3-2026-cpu/tree/main/code**
+ハンズオンのサイト: **https://uyuki234.github.io/KC3-2026-cpu/**
 
 参加者が `always_comb` の命令処理を記述し、命令テストとROMの実行で動作を確かめるWebアプリです。React + TypeScript + Viteで構成し、解析・テスト・実行はブラウザのWeb Worker内で行います。
 
 ## 関連リンク
 
-- 講義スライド：講義終了後、公開予定
-- [GitHubリポジトリ](https://github.com/uyuki234/KC3-2026-cpu)
-- [KC3 講義ページ](https://kc3.me/study/4246/)
+- [講義スライド]：講義終了後、公開予定
+- [KC3 講義概要ページ](https://kc3.me/study/4246/)
+- [主なSystemVerilogコード](https://github.com/uyuki234/KC3-2026-cpu/tree/main/code)
+- [ブログ]：講義終了後、公開予定
 
-## 講義での使い方
+## ハンズオンでの使い方
 
 1. CPUエディターにある8命令の空欄（`;` の前）へ処理を書きます。初期ROMで使わない **MOV B, Im / MOV A, B / MOV B, A / IN A** は記入済みです。
 2. 各命令の「テスト」、または「すべての命令をテスト」を押します。失敗時は実行前の状態・命令・入力と、期待値／実際の次状態を比較できます。
 3. 「実行」で、編集したCPUにROMを実行させます。LED、A/B、CF、PC（コードでは `ip`）、実行した命令と履歴が変わります。
 4. 停止・再開・リセット・速度変更・入力スイッチを使って観察します。ROMもSystemVerilogで書き換えられます。
 
-1命令ずつ進める操作はありません。未完成のCPUもそのまま実行できます。合格後に別のCPUへ切り替える仕組みではなく、テストと連続実行の両方で参加者のコードを評価します。
+1命令ずつ進める操作はありません。未完成のCPUもそのまま実行できます。テストと実行の両方で参加者のコードを利用して評価します。
 
 コードは同じブラウザに自動保存されます。「保存用JSON」で持ち出し、「読み込む」で復元できます。CPU・ROMの `.sv` もダウンロードできます。ブラウザのデータ削除や別端末への移動に備え、終了時にJSONを保存してください。CPUを書き換えると以前のテスト結果と実行状態を消去し、ROMを書き換えると実行状態をリセットします。
-
-## ローカル起動
-
-Node.js 24を使用します。
-
-```sh
-npm ci
-npm run dev
-```
-
-表示されたURLの **`/KC3-2026-cpu/`** を開きます（通常 `http://127.0.0.1:5173/KC3-2026-cpu/`）。Windowsでは `./scripts/dev.ps1` でも起動できます。このスクリプトはPATHにNode.jsがなければ、既存の `old/.tools/node-v24.21.0-win-x64` も探します。
-
-```sh
-npm test
-npm run build
-npm run preview
-npm run test:e2e
-```
-
-ローカルのブラウザテストにはGoogle Chromeを使用します。CIではPlaywrightのChromiumを使用します。`LAB_URL` を設定すると、起動済みのサーバーや公開サイトに対してブラウザテストを実行できます。
-
-## GitHub Pagesへの公開
-
-- リポジトリ名とViteの `base` は **`KC3-2026-cpu`**。大文字小文字を合わせてください。
-- GitHubの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** にします。
-- `.github/workflows/pages.yml` が `main` へのpushでテスト・ビルド・公開を行います。手動実行にも対応します。
-- PRではテストとビルドだけを行い、公開しません。
-- 公開するのは `dist/` の静的ファイルです。サーバー、Workers、ネイティブVerilogコマンド、APIキーは不要です。
 
 ## CPUと初期ROM
 
@@ -95,3 +66,23 @@ CPUの命令コード信号名は `opcode` に統一しています。ダウン�
 | `old/` | 旧設計・旧アプリ・技術検証の保管先 |
 
 依存ライブラリの著作権・ライセンス表示はビルド時に `public/third-party-notices.txt` に生成し、公開ファイルに同梱します。
+
+## ローカル起動
+
+Node.js 24を使用します。
+
+```sh
+npm ci
+npm run dev
+```
+
+表示されたURLの **`/KC3-2026-cpu/`** を開きます（通常 `http://127.0.0.1:5173/KC3-2026-cpu/`）。Windowsでは `./scripts/dev.ps1` でも起動できます。このスクリプトはPATHにNode.jsがなければ、既存の `old/.tools/node-v24.21.0-win-x64` も探します。
+
+```sh
+npm test
+npm run build
+npm run preview
+npm run test:e2e
+```
+
+ローカルのブラウザテストにはGoogle Chromeを使用します。CIではPlaywrightのChromiumを使用します。`LAB_URL` を設定すると、起動済みのサーバーや公開サイトに対してブラウザテストを実行できます。
