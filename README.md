@@ -2,6 +2,8 @@
 
 公開先: **https://uyuki234.github.io/KC3-2026-cpu/**
 
+コード: **https://github.com/uyuki234/KC3-2026-cpu/tree/main/code**
+
 参加者が `always_comb` の命令処理を記述し、命令テストとROMの実行で動作を確かめるWebアプリです。React + TypeScript + Viteで構成し、解析・テスト・実行はブラウザのWeb Worker内で行います。
 
 ## 関連リンク
