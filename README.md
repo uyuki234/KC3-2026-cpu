@@ -1,15 +1,15 @@
 # Verilogで学ぶCPU自作入門 — TD4ハンズオン
 
-ハンズオンのサイト: **https://uyuki234.github.io/KC3-2026-cpu/**
+ハンズオンのサイト: **https://uyuki234.github.io/KC3-2026-cpu/**  
+主なSystemVerilogコード：**https://github.com/uyuki234/KC3-2026-cpu/tree/main/code**
 
-参加者が `always_comb` の命令処理を記述し、命令テストとROMの実行で動作を確かめるWebアプリです。React + TypeScript + Viteで構成し、解析・テスト・実行はブラウザのWeb Worker内で行います。
+参加者がTD4の `always_comb` の命令処理を記述し、命令テストとROMの実行で動作を確かめるWebアプリです。
 
 ## 関連リンク
 
-- [講義スライド]：講義終了後、公開予定
+- [講義スライド](https://speakerdeck.com/uyuki234/verilog-de-manabu-cpu-jisaku-nyuumon)
 - [KC3 講義概要ページ](https://kc3.me/study/4246/)
-- [主なSystemVerilogコード](https://github.com/uyuki234/KC3-2026-cpu/tree/main/code)
-- [ブログ]：講義終了後、公開予定
+- [ブログ](https://uyuki234.hatenablog.com/entry/2026/09/24/203544)
 
 ## ハンズオンでの使い方
 
