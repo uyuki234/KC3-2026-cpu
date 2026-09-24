@@ -78,9 +78,6 @@ h1 {
   line-height: 1.5;
   margin-bottom: 16px;
 }
-h1 span {
-  color: #315ce5;
-}
 h2 {
   font-size: 21px;
   line-height: 1.5;
@@ -176,23 +173,21 @@ main {
   padding: 0 26px;
 }
 .intro {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 25px;
   padding: 43px 0 36px;
   border-bottom: 1px solid #dfe5e8;
   margin-bottom: 34px;
 }
-.intro .eyebrow {
+.intro h1 {
   color: #315ce5;
 }
+.intro h1 span {
+  display: inline-block;
+}
 .intro-copy {
-  flex: 1;
   min-width: 0;
 }
 .intro-description {
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.9;
   margin: 0;
 }
@@ -243,9 +238,7 @@ a.resource-link:hover {
   font-size: 11px;
 }
 .intro-guide {
-  width: 330px;
-  border-left: 1px solid #dfe5e8;
-  padding-left: 38px;
+  margin-top: 20px;
 }
 .edition {
   font:
@@ -257,7 +250,7 @@ a.resource-link:hover {
 .intro-guide ol {
   list-style: none;
   padding: 0;
-  margin: 20px 0;
+  margin: 12px 0;
   font-size: 12px;
   color: #637389;
 }
@@ -320,10 +313,6 @@ a.resource-link:hover {
 }
 .editor-caption > span:first-child {
   font-family: Consolas, monospace;
-}
-.editor-caption > span:last-child {
-  color: #8d9eb7;
-  font-size: 9px;
 }
 .editor-caption i {
   display: inline-block;
@@ -984,20 +973,12 @@ footer {
   }
   .intro {
     padding-top: 30px;
-    gap: 20px;
   }
   .intro h1 {
     font-size: 28px;
   }
-  .intro-guide {
-    width: 260px;
-    padding-left: 22px;
-  }
   .intro-guide li {
     font-size: 11px;
-  }
-  .intro-description {
-    font-size: 12px;
   }
   .build-grid,
   .run-grid {
@@ -1086,19 +1067,10 @@ footer {
     padding: 13px;
   }
   .intro {
-    display: block;
     margin-bottom: 26px;
   }
   .intro h1 {
     font-size: 30px;
-  }
-  .intro-guide {
-    margin-top: 24px;
-    padding: 16px 18px;
-    background: #edf1e8;
-    border: 0;
-    border-radius: 7px;
-    width: 100%;
   }
   .resource-links {
     display: grid;
@@ -1137,9 +1109,6 @@ footer {
   }
   .editor-caption {
     padding: 10px;
-  }
-  .editor-caption > span:last-child {
-    font-size: 8px;
   }
   .editor-caption small {
     margin-left: 7px;

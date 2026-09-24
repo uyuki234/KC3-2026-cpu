@@ -311,17 +311,27 @@ export default function App() {
       <main id="top">
         <section className="intro">
           <div className="intro-copy">
-            <p className="eyebrow">VERILOGで学ぶCPU自作入門</p>
             <h1>
-              命令を書こう。
-              <br />
-              <span>自分のCPUを動かそう。</span>
+              <span>VERILOGで学ぶ</span>
+              <wbr />
+              <span>CPU自作入門</span>
             </h1>
-            <p className="intro-description">
-              次の値を決める回路を、あなたの手で。
-              <br />
-              8つの命令処理を埋めて、ROMのプログラムを実行しよう。
-            </p>
+            <p className="intro-description">「CPUの自作」を体験しよう！</p>
+            <div className="intro-guide">
+              <span className="edition">4 BIT CPU / 12 INSTRUCTIONS</span>
+              <ol>
+                <li>
+                  <b>01</b> 命令表を見ながらコードを書く
+                </li>
+                <li>
+                  <b>02</b> 各命令の動きをテストする
+                </li>
+                <li>
+                  <b>03</b> ROMを実行してLEDを観察する
+                </li>
+              </ol>
+              <a href="#simulator">実行画面へ ↓</a>
+            </div>
             <nav className="resource-links" aria-label="講義の関連リンク">
               <a
                 className="resource-link"
@@ -354,21 +364,6 @@ export default function App() {
                 <span aria-hidden="true">↗</span>
               </a>
             </nav>
-          </div>
-          <div className="intro-guide">
-            <span className="edition">4 BIT CPU / 12 INSTRUCTIONS</span>
-            <ol>
-              <li>
-                <b>01</b> 命令表を見ながらコードを書く
-              </li>
-              <li>
-                <b>02</b> 各命令の動きをテストする
-              </li>
-              <li>
-                <b>03</b> ROMを実行してLEDを観察する
-              </li>
-            </ol>
-            <a href="#simulator">実行画面へ ↓</a>
           </div>
         </section>
         {!fullscreen && notice.message && (
@@ -429,9 +424,8 @@ export default function App() {
               <div className="editor-caption">
                 <span>
                   <i />
-                  cpu.sv <small>always_comb</small>
+                  cpu.sv（一部抜粋） <small>always_comb</small>
                 </span>
-                <span>SystemVerilog · 演習用の対応構文</span>
               </div>
               <Suspense fallback={<div className="editor-loading">エディタを読み込み中…</div>}>
                 <Editor
