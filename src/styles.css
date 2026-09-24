@@ -242,16 +242,6 @@ a.resource-link:hover {
   color: #315ce5;
   font-size: 11px;
 }
-.resource-link.pending {
-  min-width: 190px;
-  background: #f2f4f6;
-  border-style: dashed;
-}
-.resource-link.pending > span {
-  color: #8995a5;
-  font-size: 9px;
-  margin-left: 10px;
-}
 .intro-guide {
   width: 330px;
   border-left: 1px solid #dfe5e8;
@@ -376,11 +366,22 @@ a.resource-link:hover {
   padding: 15px;
   background: #213047;
 }
-.code-toolbar > span {
-  font:
-    10px Consolas,
-    monospace;
-  color: #8d9eb7;
+.test-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.code-toolbar .fullscreen-toggle {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #c0ccdc;
+  background: transparent;
+  border-color: #53647c;
+  font-size: 11px;
+}
+.code-toolbar .fullscreen-toggle:hover {
+  background: #2c3b51;
 }
 .sub-actions {
   display: flex;
@@ -409,22 +410,11 @@ a.resource-link:hover {
 .hints details:last-child {
   border: 0;
 }
-.hints .hint-more {
-  margin: 12px 0 0;
-  padding: 9px 12px;
-  border: 1px solid #e3e9f0;
-  border-radius: 7px;
-  background: #f7f9fc;
+.hint-instructions {
+  font-weight: 400;
 }
-.hints .hint-more:last-child {
-  border: 1px solid #e3e9f0;
-}
-.hints .hint-more summary {
-  color: #315ce5;
-  font-size: 11px;
-}
-.hints .hint-more p {
-  margin-top: 8px;
+.hint-instructions code {
+  white-space: nowrap;
 }
 summary {
   color: #4f6686;
@@ -478,7 +468,8 @@ details code {
   color: #8596ad;
   display: block;
 }
-.reference {
+.reference,
+.difficulty {
   display: block;
   color: #678660;
   background: #edf3e8;
@@ -487,6 +478,11 @@ details code {
   text-align: center;
   margin-top: 4px;
   width: 32px;
+}
+.difficulty {
+  color: #a65359;
+  background: #fbeaec;
+  width: 38px;
 }
 .instruction-body strong {
   font:
@@ -974,9 +970,6 @@ footer {
   .intro h1 {
     font-size: 33px;
   }
-  .code-toolbar > span {
-    font-size: 9px;
-  }
   .code-toolbar .primary {
     font-size: 11px;
     padding: 10px 14px;
@@ -1111,11 +1104,10 @@ footer {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
-  .resource-link,
-  .resource-link.pending {
+  .resource-link {
     min-width: 0;
   }
-  .resource-link.pending {
+  .resource-link:first-child {
     grid-column: 1 / -1;
   }
   .intro-guide ol {
@@ -1155,9 +1147,6 @@ footer {
   }
   .code-toolbar {
     padding: 12px;
-  }
-  .code-toolbar > span {
-    display: none;
   }
   .instruction-row {
     grid-template-columns: 38px 1fr 56px;
@@ -1254,4 +1243,55 @@ footer {
 .code-panel,
 .tests-panel {
   min-width: 0;
+}
+.cpu-workspace.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #172336;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+.is-fullscreen .editor-caption,
+.is-fullscreen .code-toolbar {
+  flex-shrink: 0;
+  border-radius: 0;
+}
+.is-fullscreen .editor,
+.is-fullscreen .editor-loading {
+  flex: 1;
+  min-height: 0;
+}
+.is-fullscreen .cm-editor {
+  height: 100%;
+}
+.is-fullscreen .cm-scroller {
+  min-height: 0 !important;
+  max-height: none !important;
+  overscroll-behavior: contain;
+}
+.fullscreen-feedback {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 15px;
+  color: #c0ccdc;
+  background: #213047;
+  font-size: 12px;
+  max-height: 25dvh;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.fullscreen-feedback [role='alert'] {
+  color: #ffceba;
+}
+.fullscreen-feedback button {
+  flex-shrink: 0;
+  background: transparent;
+  color: #c0ccdc;
+  border-color: #53647c;
 }

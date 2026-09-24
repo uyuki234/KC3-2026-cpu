@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { basicSetup } from 'codemirror';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { HighlightStyle, StreamLanguage, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { verilog } from '@codemirror/legacy-modes/mode/verilog';
@@ -8,20 +8,18 @@ export default function Editor({
   value,
   onChange,
   label,
-  onRun,
   location,
 }: {
   value: string;
   onChange: (v: string) => void;
   label: string;
-  onRun?: () => void;
   location?: { line: number; key: number };
 }) {
   const host = useRef<HTMLDivElement>(null),
     instance = useRef<EditorView | null>(null),
     syncing = useRef(false),
-    callbacks = useRef({ onChange, onRun });
-  callbacks.current = { onChange, onRun };
+    callbacks = useRef({ onChange });
+  callbacks.current = { onChange };
   useEffect(() => {
     const view = new EditorView({
       parent: host.current!,
@@ -30,15 +28,6 @@ export default function Editor({
         basicSetup,
         StreamLanguage.define(verilog),
         EditorView.contentAttributes.of({ 'aria-label': label, spellcheck: 'false' }),
-        keymap.of([
-          {
-            key: 'Mod-Enter',
-            run: () => {
-              callbacks.current.onRun?.();
-              return true;
-            },
-          },
-        ]),
         syntaxHighlighting(
           HighlightStyle.define([
             { tag: tags.keyword, color: '#cab8ff' },

@@ -17,7 +17,16 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
     'href',
     'https://github.com/uyuki234/KC3-2026-cpu',
   );
-  await expect(page.getByText('講義終了後、公開予定', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /SLIDES.*講義スライド/ })).toHaveAttribute(
+    'href',
+    'https://speakerdeck.com/uyuki234/verilog-de-manabu-cpu-jisaku-nyuumon',
+  );
+  await expect(
+    page
+      .locator('.instruction-row')
+      .filter({ has: page.locator('.difficulty') })
+      .locator('.instruction-body strong'),
+  ).toHaveText(['ADD A, Im', 'ADD B, Im', 'JMP Im', 'JNC Im']);
   await expect(page.locator('.resource-link strong')).toHaveText([
     '講義スライド',
     'リポジトリ',
@@ -43,27 +52,102 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   await page.screenshot({ path: 'test-results/lab-desktop.png', fullPage: true });
   expect(errors).toEqual([]);
 });
-test('ヒントを二段階で開き、活用できる命令を確認できる', async ({ page }) => {
+test('ヒントを開く前から対象命令が分かり、一度開けば説明を読める', async ({ page }) => {
   await page.goto('./');
-  const assignmentUses = page.getByTestId('hint-uses-assignment');
-  await expect(assignmentUses).not.toBeVisible();
-  await page.getByText('ヒント：次の値に代入する', { exact: true }).click();
-  await expect(assignmentUses).not.toBeVisible();
-  await page.getByText('さらにヒント：使える命令', { exact: true }).nth(0).click();
-  await expect(assignmentUses).toContainText('MOV A, Im');
-  await expect(assignmentUses).toContainText('JMP Im');
-  await expect(assignmentUses).toContainText('IN B');
-  await expect(assignmentUses).toContainText('OUT B');
-  await expect(assignmentUses).toContainText('OUT Im');
+  const hints = page.locator('.hints > details');
+  const commands = [
+    ['MOV A, Im', 'JMP Im', 'IN B', 'OUT B', 'OUT Im'],
+    ['ADD A, Im', 'ADD B, Im'],
+    ['JNC Im'],
+  ];
+  for (let index = 0; index < commands.length; index++) {
+    const hint = hints.nth(index);
+    await expect(hint.locator('summary code')).toHaveText(commands[index]);
+    await expect(hint.locator('summary')).toBeVisible();
+    await expect(hint.locator('p')).not.toBeVisible();
+    await hint.locator('summary').click();
+    await expect(hint.locator('p')).toBeVisible();
+  }
+  await expect(page.getByText('さらにヒント：使える命令')).toHaveCount(0);
+});
 
-  await page.getByText('ヒント：加算と桁上がり', { exact: true }).click();
-  await page.getByText('さらにヒント：使える命令', { exact: true }).nth(1).click();
-  await expect(page.getByTestId('hint-uses-addition')).toContainText('ADD A, Im');
-  await expect(page.getByTestId('hint-uses-addition')).toContainText('ADD B, Im');
+for (const viewport of [
+  { width: 1440, height: 1000 },
+  { width: 390, height: 844 },
+]) {
+  test(`全画面で編集・テストでき、右下のボタンとEscで戻れる (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('./');
+    const editor = page.getByRole('textbox', { name: 'CPUのalways_comb' });
+    await editor.fill(answer);
+    await page.getByRole('button', { name: '全画面', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '命令処理をつくる' });
+    await expect(dialog).toBeVisible();
+    await expect(editor).toBeFocused();
+    const bounds = await dialog.boundingBox();
+    expect(bounds).toEqual({ x: 0, y: 0, ...viewport });
+    const restore = dialog.getByRole('button', { name: '元に戻す', exact: true });
+    const buttonBounds = (await restore.boundingBox())!;
+    expect(buttonBounds.x + buttonBounds.width).toBeGreaterThan(viewport.width - 30);
+    expect(buttonBounds.y + buttonBounds.height).toBeGreaterThan(viewport.height - 30);
+    await restore.focus();
+    await page.keyboard.press('Tab');
+    await expect(editor).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(restore).toBeFocused();
+    await editor.press('ControlOrMeta+End');
+    await page.keyboard.insertText('\n// fullscreen edit');
+    await dialog.getByRole('button', { name: 'すべての命令をテスト' }).click();
+    await expect(dialog.locator('.fullscreen-feedback')).toContainText('12 / 12 命令成功');
+    await page.screenshot({ path: `test-results/fullscreen-${viewport.width}.png` });
+    await restore.click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(editor).toContainText('// fullscreen edit');
+    await expect(page.getByRole('button', { name: '全画面', exact: true })).toBeFocused();
+    await editor.press('ControlOrMeta+z');
+    await expect(editor).not.toContainText('// fullscreen edit');
+    await expect(editor).toContainText('{next_cf, next_a}');
+    await page.getByRole('button', { name: '全画面', exact: true }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('.site-header')).not.toHaveAttribute('inert', '');
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  });
+}
 
-  await page.getByText('ヒント：条件で次の番地を選ぶ', { exact: true }).click();
-  await page.getByText('さらにヒント：使える命令', { exact: true }).nth(2).click();
-  await expect(page.getByTestId('hint-uses-condition')).toContainText('JNC Im');
+test('全画面でも構文エラーを確認でき、結果詳細へ戻れる', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: '全画面', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await page
+    .getByRole('textbox', { name: 'CPUのalways_comb' })
+    .fill('always_comb begin\nnext_a <= 0;\nend');
+  await dialog.getByRole('button', { name: 'すべての命令をテスト' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('2行目');
+  await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
+  await dialog.getByRole('button', { name: 'すべての命令をテスト' }).click();
+  await expect(dialog.locator('.fullscreen-feedback')).toContainText('12 / 12 命令成功');
+  await dialog.getByRole('button', { name: '結果の詳細を見る' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('completion')).toHaveText('12 / 12');
+  await expect(page.locator('.test-detail')).toBeInViewport();
+});
+
+test('Ctrl / Command + Enterでは命令テストを実行しない', async ({ page }) => {
+  await page.goto('./');
+  const editor = page.getByRole('textbox', { name: 'CPUのalways_comb' });
+  await editor.fill(answer);
+  await editor.press('Control+Enter');
+  await editor.press('Meta+Enter');
+  await page.waitForTimeout(500);
+  await expect(page.getByTestId('completion')).toHaveText('0 / 12');
+  await expect(page.getByTestId('status-0')).toHaveText('未検証');
+  await expect(page.getByText('Ctrl / ⌘ + Enter', { exact: true })).toHaveCount(0);
 });
 test('ROMを自由に編集し、実行・停止・再開・入力変更・リセットする', async ({ page }) => {
   await page.goto('./');

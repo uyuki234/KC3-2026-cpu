@@ -8,14 +8,29 @@ export const resetState = (): State => ({ a: 0, b: 0, cf: 0, ip: 0, out: 0 });
 export const binary = (n: number, width = 4) => n.toString(2).padStart(width, '0');
 export const hex = (n: number) => n.toString(16).toUpperCase().padStart(2, '0');
 export const instructions = [
-  { op: 0, name: 'ADD A, Im', description: 'Aに即値を足す。CFに桁上がりを入れる。' },
-  { op: 5, name: 'ADD B, Im', description: 'Bに即値を足す。CFに桁上がりを入れる。' },
+  {
+    op: 0,
+    name: 'ADD A, Im',
+    description: 'Aに即値を足す。CFに桁上がりを入れる。',
+    difficult: true,
+  },
+  {
+    op: 5,
+    name: 'ADD B, Im',
+    description: 'Bに即値を足す。CFに桁上がりを入れる。',
+    difficult: true,
+  },
   { op: 3, name: 'MOV A, Im', description: 'Aに即値を入れる。' },
   { op: 7, name: 'MOV B, Im', description: 'Bに即値を入れる。', reference: true },
   { op: 1, name: 'MOV A, B', description: 'AにBの値を入れる。', reference: true },
   { op: 4, name: 'MOV B, A', description: 'BにAの値を入れる。', reference: true },
-  { op: 15, name: 'JMP Im', description: '即値の番地へジャンプする。' },
-  { op: 14, name: 'JNC Im', description: '現在のCFが0ならジャンプ。1なら次の番地へ。' },
+  { op: 15, name: 'JMP Im', description: '即値の番地へジャンプする。', difficult: true },
+  {
+    op: 14,
+    name: 'JNC Im',
+    description: '現在のCFが0ならジャンプ。1なら次の番地へ。',
+    difficult: true,
+  },
   { op: 2, name: 'IN A', description: 'Aにスイッチの値を入れる。', reference: true },
   { op: 6, name: 'IN B', description: 'Bにスイッチの値を入れる。' },
   { op: 9, name: 'OUT B', description: 'OUTにBの値を入れる。' },

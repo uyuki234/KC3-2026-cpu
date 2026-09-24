@@ -47,6 +47,9 @@ export default function App() {
     [history, setHistory] = useState<Frame[]>([]);
   const [backup, setBackup] = useState<Project>(),
     [location, setLocation] = useState<{ target: string; line: number; key: number }>();
+  const [fullscreen, setFullscreen] = useState(false);
+  const cpuWorkspace = useRef<HTMLDivElement>(null),
+    fullscreenButton = useRef<HTMLButtonElement>(null);
   const testWorker = useRef<Worker | null>(null),
     runWorker = useRef<Worker | null>(null),
     testTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
@@ -78,6 +81,53 @@ export default function App() {
     },
     [],
   );
+  useEffect(() => {
+    if (!fullscreen) return;
+    const workspace = cpuWorkspace.current!;
+    // Keep the same editor mounted so selections and undo history survive resizing.
+    const background: { element: HTMLElement; inert: boolean }[] = [];
+    for (let node: HTMLElement = workspace; node.parentElement; node = node.parentElement) {
+      for (const sibling of node.parentElement.children) {
+        if (sibling !== node && sibling instanceof HTMLElement) {
+          background.push({ element: sibling, inert: sibling.inert });
+          sibling.inert = true;
+        }
+      }
+    }
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    workspace
+      .querySelector<HTMLElement>('[contenteditable="true"]')
+      ?.focus({ preventScroll: true });
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setFullscreen(false);
+      } else if (event.key === 'Tab') {
+        const focusable = Array.from(
+          workspace.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), [tabindex="0"], [contenteditable="true"]',
+          ),
+        ).filter((element) => element.getClientRects().length > 0);
+        const first = focusable[0],
+          last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    }
+    workspace.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      workspace.removeEventListener('keydown', onKeyDown, true);
+      for (const { element, inert } of background) element.inert = inert;
+      document.body.style.overflow = overflow;
+      fullscreenButton.current?.focus({ preventScroll: true });
+    };
+  }, [fullscreen]);
   function cancelTest() {
     clearTimeout(testTimer.current);
     testWorker.current?.terminate();
@@ -273,11 +323,16 @@ export default function App() {
               8つの命令処理を埋めて、ROMのプログラムを実行しよう。
             </p>
             <nav className="resource-links" aria-label="講義の関連リンク">
-              <span className="resource-link pending">
+              <a
+                className="resource-link"
+                href="https://speakerdeck.com/uyuki234/verilog-de-manabu-cpu-jisaku-nyuumon"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <small>SLIDES</small>
                 <strong>講義スライド</strong>
-                <span>講義終了後、公開予定</span>
-              </span>
+                <span aria-hidden="true">↗</span>
+              </a>
               <a
                 className="resource-link"
                 href="https://github.com/uyuki234/KC3-2026-cpu"
@@ -316,7 +371,7 @@ export default function App() {
             <a href="#simulator">実行画面へ ↓</a>
           </div>
         </section>
-        {notice.message && (
+        {!fullscreen && notice.message && (
           <div className="notice" role="alert">
             <span>{notice.message}</span>
             {notice.line && (
@@ -364,31 +419,67 @@ export default function App() {
               <br />
               初期ROMで使わない4命令は、参考として解答を入れてあります。
             </p>
-            <div className="editor-caption">
-              <span>
-                <i />
-                cpu.sv <small>always_comb</small>
-              </span>
-              <span>SystemVerilog · 演習用の対応構文</span>
-            </div>
-            <Suspense fallback={<div className="editor-loading">エディタを読み込み中…</div>}>
-              <Editor
-                value={project.cpu}
-                label="CPUのalways_comb"
-                onChange={(v) => change('cpu', v)}
-                onRun={() => check()}
-                location={location?.target === 'cpu' ? location : undefined}
-              />
-            </Suspense>
-            <div className="code-toolbar">
-              <button className="primary" disabled={testing} onClick={() => check()}>
-                {testing ? '検証中…' : '▷ すべての命令をテスト'}
-              </button>
-              {testing ? (
-                <button onClick={cancelTest}>テストを中止</button>
-              ) : (
-                <span>Ctrl / ⌘ + Enter</span>
+            <div
+              ref={cpuWorkspace}
+              className={`cpu-workspace${fullscreen ? ' is-fullscreen' : ''}`}
+              role={fullscreen ? 'dialog' : undefined}
+              aria-modal={fullscreen ? true : undefined}
+              aria-label={fullscreen ? '命令処理をつくる' : undefined}
+            >
+              <div className="editor-caption">
+                <span>
+                  <i />
+                  cpu.sv <small>always_comb</small>
+                </span>
+                <span>SystemVerilog · 演習用の対応構文</span>
+              </div>
+              <Suspense fallback={<div className="editor-loading">エディタを読み込み中…</div>}>
+                <Editor
+                  value={project.cpu}
+                  label="CPUのalways_comb"
+                  onChange={(v) => change('cpu', v)}
+                  location={location?.target === 'cpu' ? location : undefined}
+                />
+              </Suspense>
+              {fullscreen && (
+                <div className="fullscreen-feedback" aria-live="polite">
+                  {notice.message ? (
+                    <span role="alert">{notice.message}</span>
+                  ) : (
+                    <span>{testing ? '検証中…' : `${count} / 12 命令成功`}</span>
+                  )}
+                  {!testing && Object.keys(results).length > 0 && (
+                    <button
+                      onClick={() => {
+                        setFullscreen(false);
+                        requestAnimationFrame(() =>
+                          document
+                            .querySelector('.test-detail')
+                            ?.scrollIntoView({ block: 'center' }),
+                        );
+                      }}
+                    >
+                      結果の詳細を見る
+                    </button>
+                  )}
+                </div>
               )}
+              <div className="code-toolbar">
+                <div className="test-buttons">
+                  <button className="primary" disabled={testing} onClick={() => check()}>
+                    {testing ? '検証中…' : '▷ すべての命令をテスト'}
+                  </button>
+                  {testing && <button onClick={cancelTest}>テストを中止</button>}
+                </div>
+                <button
+                  ref={fullscreenButton}
+                  className="fullscreen-toggle"
+                  aria-expanded={fullscreen}
+                  onClick={() => setFullscreen((current) => !current)}
+                >
+                  {fullscreen ? '元に戻す' : '全画面'}
+                </button>
+              </div>
             </div>
             <div className="sub-actions">
               <button onClick={() => replace({ ...project, cpu: initialCode })}>
@@ -400,45 +491,42 @@ export default function App() {
             </div>
             <div className="hints">
               <details>
-                <summary>ヒント：次の値に代入する</summary>
+                <summary>
+                  ヒント：次の値に代入する{' '}
+                  <span className="hint-instructions">
+                    （<code>MOV A, Im</code>、<code>JMP Im</code>、<code>IN B</code>、
+                    <code>OUT B</code>、<code>OUT Im</code>）
+                  </span>
+                </summary>
                 <p>
                   <code>next_b = a;</code>{' '}
                   は、今のAを「次にBへ記憶する値」にします。記憶する処理は用意済みです。共通処理で値を決めてから、命令に応じて必要なものだけ上書きします。
                 </p>
-                <details className="hint-more">
-                  <summary>さらにヒント：使える命令</summary>
-                  <p data-testid="hint-uses-assignment">
-                    この考え方は <code>MOV A, Im</code>、<code>JMP Im</code>、<code>IN B</code>、
-                    <code>OUT B</code>、<code>OUT Im</code> でそのまま活用できます。
-                  </p>
-                </details>
               </details>
               <details>
-                <summary>ヒント：加算と桁上がり</summary>
+                <summary>
+                  ヒント：加算と桁上がり{' '}
+                  <span className="hint-instructions">
+                    （<code>ADD A, Im</code>、<code>ADD B, Im</code>）
+                  </span>
+                </summary>
                 <p>
                   <code>{'{上位1bit, 下位4bit}'}</code> と連結すると、5bitの結果を受け取れます。15 +
                   1 は <code>1_0000</code>。結果の下位4bitは0、桁上がりは1です。
                 </p>
-                <details className="hint-more">
-                  <summary>さらにヒント：使える命令</summary>
-                  <p data-testid="hint-uses-addition">
-                    この考え方は <code>ADD A, Im</code> と <code>ADD B, Im</code> で活用できます。
-                  </p>
-                </details>
               </details>
               <details>
-                <summary>ヒント：条件で次の番地を選ぶ</summary>
+                <summary>
+                  ヒント：条件で次の番地を選ぶ{' '}
+                  <span className="hint-instructions">
+                    （<code>JNC Im</code>）
+                  </span>
+                </summary>
                 <p>
                   <code>条件 ? 真のときの値 : 偽のときの値</code>。JNCで見るのは現在の{' '}
                   <code>cf</code> です。<code>next_cf</code>{' '}
                   は次のクロックで記憶する値なので、区別しましょう。
                 </p>
-                <details className="hint-more">
-                  <summary>さらにヒント：使える命令</summary>
-                  <p data-testid="hint-uses-condition">
-                    この考え方は <code>JNC Im</code> で活用できます。
-                  </p>
-                </details>
               </details>
               <details>
                 <summary>対応するSystemVerilogの構文</summary>
@@ -493,6 +581,7 @@ export default function App() {
                     <div className="instruction-meta">
                       <code>{binary(i.op)}</code>
                       {i.reference && <span className="reference">参考</span>}
+                      {i.difficult && <span className="difficulty">難しい</span>}
                     </div>
                     <div className="instruction-body">
                       <strong>{i.name}</strong>
