@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { basicSetup } from 'codemirror';
+import { isolateHistory } from '@codemirror/commands';
 import { EditorView } from '@codemirror/view';
 import { HighlightStyle, StreamLanguage, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
@@ -32,7 +33,7 @@ export default function Editor({
           HighlightStyle.define([
             { tag: tags.keyword, color: '#cab8ff' },
             { tag: tags.number, color: '#97dfbb' },
-            { tag: tags.comment, color: '#94a6bc' },
+            { tag: tags.comment, color: '#bac9dc' },
             { tag: tags.string, color: '#f0cf97' },
             { tag: tags.operator, color: '#9dcaff' },
           ]),
@@ -43,7 +44,7 @@ export default function Editor({
         }),
         EditorView.theme(
           {
-            '&': { backgroundColor: '#172336', color: '#e4edf8', fontSize: '13px' },
+            '&': { backgroundColor: '#172336', color: '#e4edf8', fontSize: '15px' },
             '.cm-content': {
               fontFamily: 'Consolas, monospace',
               padding: '18px 0',
@@ -72,7 +73,10 @@ export default function Editor({
     if (view && normalized !== view.state.doc.toString()) {
       syncing.current = true;
       try {
-        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: normalized } });
+        view.dispatch({
+          changes: { from: 0, to: view.state.doc.length, insert: normalized },
+          annotations: isolateHistory.of('full'),
+        });
       } finally {
         syncing.current = false;
       }

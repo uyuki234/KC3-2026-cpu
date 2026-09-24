@@ -9,6 +9,15 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('./');
   await expect(page.getByRole('button', { name: /1命令進/ })).toHaveCount(0);
+  await expect(page.getByRole('banner')).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: /保存用JSON|読み込む|rom.svをダウンロード/ }),
+  ).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /X.*作者SNS/ })).toHaveAttribute(
+    'href',
+    'https://x.com/uyuki234',
+  );
+  await expect(page.locator('.resource-link svg')).toHaveCount(4);
   await expect(page.getByRole('link', { name: /KC3.*講義ページ/ })).toHaveAttribute(
     'href',
     'https://kc3.me/study/4246/',
@@ -28,6 +37,7 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
       .locator('.instruction-body strong'),
   ).toHaveText(['ADD A, Im', 'ADD B, Im', 'JMP Im', 'JNC Im']);
   await expect(page.locator('.resource-link strong')).toHaveText([
+    '作者SNS',
     '講義スライド',
     'リポジトリ',
     '講義ページ',
@@ -42,8 +52,20 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   await page.getByRole('button', { name: 'すべての命令をテスト' }).click();
   await expect(page.getByTestId('completion')).toHaveText('4 / 12', { timeout: 30000 });
   await expect(page.getByRole('button', { name: 'すべての命令をテスト' })).toBeEnabled();
+  await expect(page.locator('.instruction-row.failed')).toHaveCount(8);
+  await expect(page.locator('.instruction-row.passed')).toHaveCount(4);
+  await expect(page.getByTestId('instruction-0')).toHaveCSS(
+    'background-color',
+    'rgb(255, 240, 240)',
+  );
+  await expect(page.getByTestId('instruction-7')).toHaveCSS(
+    'background-color',
+    'rgb(237, 247, 237)',
+  );
+  await expect(page.getByText(/^(未検証|要確認|✓ 成功)$/)).toHaveCount(0);
+  await page.locator('.build-grid').screenshot({ path: 'test-results/row-colors.png' });
   for (const op of [1, 2, 4, 7])
-    await expect(page.getByTestId(`status-${op}`)).toHaveText('✓ 成功');
+    await expect(page.getByTestId(`instruction-${op}`)).toHaveClass(/passed/);
   await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
   await expect(page.getByTestId('completion')).toHaveText('0 / 12');
   await page.getByRole('button', { name: 'すべての命令をテスト' }).click();
@@ -112,7 +134,7 @@ for (const viewport of [
     await page.getByRole('button', { name: '全画面', exact: true }).click();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(page.locator('.site-header')).not.toHaveAttribute('inert', '');
+    await expect(page.locator('.intro')).not.toHaveAttribute('inert', '');
     expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -120,7 +142,7 @@ for (const viewport of [
   });
 }
 
-test('全画面でも構文エラーを確認でき、結果詳細へ戻れる', async ({ page }) => {
+test('全画面でも構文エラーを確認でき、命令表へ戻れる', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: '全画面', exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -132,10 +154,10 @@ test('全画面でも構文エラーを確認でき、結果詳細へ戻れる',
   await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
   await dialog.getByRole('button', { name: 'すべての命令をテスト' }).click();
   await expect(dialog.locator('.fullscreen-feedback')).toContainText('12 / 12 命令成功');
-  await dialog.getByRole('button', { name: '結果の詳細を見る' }).click();
+  await dialog.getByRole('button', { name: '命令表を見る' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByTestId('completion')).toHaveText('12 / 12');
-  await expect(page.locator('.test-detail')).toBeInViewport();
+  await expect(page.locator('.instruction-list')).toBeInViewport();
 });
 
 test('Ctrl / Command + Enterでは命令テストを実行しない', async ({ page }) => {
@@ -146,7 +168,7 @@ test('Ctrl / Command + Enterでは命令テストを実行しない', async ({ p
   await editor.press('Meta+Enter');
   await page.waitForTimeout(500);
   await expect(page.getByTestId('completion')).toHaveText('0 / 12');
-  await expect(page.getByTestId('status-0')).toHaveText('未検証');
+  await expect(page.getByTestId('instruction-0')).not.toHaveClass(/passed|failed/);
   await expect(page.getByText('Ctrl / ⌘ + Enter', { exact: true })).toHaveCount(0);
 });
 test('ROMを自由に編集し、実行・停止・再開・入力変更・リセットする', async ({ page }) => {
@@ -182,11 +204,11 @@ test('ROMを自由に編集し、実行・停止・再開・入力変更・リ�
   await page.screenshot({ path: 'test-results/lab-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
-test('命令別の失敗詳細、構文エラー、対応外構文を確認して直せる', async ({ page }) => {
+test('命令別の失敗色、構文エラー、対応外構文を確認して直せる', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'ADD A, Imをテスト', exact: true }).click();
-  await expect(page.getByTestId('status-0')).toHaveText('要確認');
-  await expect(page.locator('.failure').first()).toContainText('期待する次の値');
+  await expect(page.getByTestId('instruction-0')).toHaveClass(/failed/);
+  await expect(page.locator('.test-detail')).toHaveCount(0);
   await page
     .getByRole('textbox', { name: 'CPUのalways_comb' })
     .fill('always_comb begin\nnext_a <= 0;\nend');
@@ -200,16 +222,17 @@ test('命令別の失敗詳細、構文エラー、対応外構文を確認し�
   await expect(page.getByRole('alert')).toContainText('対応していません');
   await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
   await page.getByRole('button', { name: 'JNC Imをテスト', exact: true }).click();
-  await expect(page.getByTestId('status-14')).toHaveText('✓ 成功');
+  await expect(page.getByTestId('instruction-14')).toHaveClass(/passed/);
 });
-test('保存・再読込・JSON入出力・置き換えの取り消し', async ({ page }) => {
+test('自動保存・再読込・置き換えの取り消し', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
   await page.getByRole('textbox', { name: 'ROMコード' }).fill(shortRom);
-  await expect(page.locator('.saved')).toHaveText('このブラウザに保存済み');
-  const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: '保存用JSON' }).click();
-  const path = await (await download).path();
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem('kc3-td4-instructions-v1') || '{}').rom),
+    )
+    .toBe(shortRom);
   await page.reload();
   await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
     '{next_cf, next_a}',
@@ -223,10 +246,72 @@ test('保存・再読込・JSON入出力・置き換えの取り消し', async (
   await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
     '{next_cf, next_a}',
   );
-  await page
-    .locator('input[type=file]')
-    .setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{}') });
-  await expect(page.getByRole('alert')).toContainText('プロジェクトJSON');
-  await page.locator('input[type=file]').setInputFiles(path!);
   await expect(page.getByRole('textbox', { name: 'ROMコード' })).toContainText('IN B');
+});
+
+test('解答を入れると対象だけが変わり、Undoと取り消しで戻せる', async ({ page }) => {
+  await page.goto('./');
+  const editor = page.getByRole('textbox', { name: 'CPUのalways_comb' });
+  const original = await editor.innerText();
+  const custom = original.replace("4'b0110: ;", "4'b0110: next_b = 9;");
+  await editor.fill(custom);
+  await page.getByRole('button', { name: 'ADD A, Imの解答を入れる', exact: true }).click();
+  await expect(editor).toContainText('{next_cf, next_a} = a + imm;');
+  await expect(editor).toContainText("4'b0110: next_b = 9;");
+  await editor.press('ControlOrMeta+z');
+  await expect(editor).toContainText("4'b0000: ; // ADD A, IMM");
+  await expect(editor).toContainText("4'b0110: next_b = 9;");
+  await page.getByRole('button', { name: 'ADD A, Imの解答を入れる', exact: true }).click();
+  await page.getByRole('button', { name: '置き換えを取り消す', exact: true }).click();
+  await expect(editor).toContainText("4'b0000: ; // ADD A, IMM");
+  await expect(editor).toContainText("4'b0110: next_b = 9;");
+  await page.getByRole('button', { name: '配布コードに戻す', exact: true }).click();
+  for (const name of [
+    'ADD A, Im',
+    'ADD B, Im',
+    'MOV A, Im',
+    'JMP Im',
+    'JNC Im',
+    'IN B',
+    'OUT B',
+    'OUT Im',
+  ]) {
+    await page.getByRole('button', { name: name + 'の解答を入れる', exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'すべての命令をテスト' }).click();
+  await expect(page.getByTestId('completion')).toHaveText('12 / 12');
+  await expect(page.locator('.instruction-row.passed')).toHaveCount(12);
+  await editor.press('ControlOrMeta+End');
+  await page.keyboard.insertText('\n// edit after tests');
+  await expect(page.locator('.instruction-row.passed')).toHaveCount(0);
+});
+
+test('解答を挿入できないときはコードを保持して通知する', async ({ page }) => {
+  await page.goto('./');
+  const editor = page.getByRole('textbox', { name: 'CPUのalways_comb' });
+  const invalid = 'always_comb begin next_a = ; end';
+  await editor.fill(invalid);
+  await page.getByRole('button', { name: 'ADD A, Imの解答を入れる', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('コードは変更していません');
+  await expect(editor).toHaveText(invalid);
+});
+
+test('狭い画面でも文字と解答ボタン、4つのリンクが収まる', async ({ page }) => {
+  await page.goto('./');
+  for (const width of [320, 390, 768, 1024]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(
+      page.getByRole('button', { name: 'ADD A, Imの解答を入れる', exact: true }),
+    ).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.intro').screenshot({ path: 'test-results/intro-mobile.png' });
+  await page.getByRole('button', { name: 'すべての命令をテスト' }).click();
+  await expect(page.getByTestId('completion')).toHaveText('4 / 12');
+  await page
+    .locator('.instruction-list')
+    .screenshot({ path: 'test-results/instructions-mobile.png' });
 });

@@ -5,6 +5,7 @@ import {
   hex,
   initialCode,
   initialRom,
+  insertAnswer,
   instructionName,
   instructions,
   resetState,
@@ -13,13 +14,14 @@ import {
   type TestResult,
 } from './td4';
 import { loadProject, storageKey, validateProject, type Project } from './storage';
+import ResourceIcon from './ResourceIcon';
 const Editor = lazy(() => import('./Editor'));
 type Notice = { message: string; target?: 'cpu' | 'rom'; line?: number };
 const newWorker = () => new Worker(new URL('./lab.worker.ts', import.meta.url), { type: 'module' });
 function download(name: string, content: string) {
   const url = URL.createObjectURL(
     new Blob([content], {
-      type: name.endsWith('.json') ? 'application/json' : 'text/plain;charset=utf-8',
+      type: 'text/plain;charset=utf-8',
     }),
   );
   const a = document.createElement('a');
@@ -32,11 +34,10 @@ function download(name: string, content: string) {
 export default function App() {
   const [loaded] = useState(loadProject),
     [project, setProject] = useState(loaded.project);
-  const [notice, setNotice] = useState<Notice>({ message: loaded.warning }),
-    [saved, setSaved] = useState('');
+  const [notice, setNotice] = useState<Notice>({ message: loaded.warning });
+  const [saveError, setSaveError] = useState('');
   const [results, setResults] = useState<Record<number, TestResult>>({}),
-    [testing, setTesting] = useState(false),
-    [selected, setSelected] = useState<number>();
+    [testing, setTesting] = useState(false);
   const [frame, setFrame] = useState<Frame>(),
     [romBytes, setRomBytes] = useState<number[]>([]),
     [running, setRunning] = useState(false),
@@ -53,21 +54,19 @@ export default function App() {
   const testWorker = useRef<Worker | null>(null),
     runWorker = useRef<Worker | null>(null),
     testTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
-    prepareTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
-    file = useRef<HTMLInputElement>(null);
+    prepareTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const state = frame?.after ?? resetState(),
     count = instructions.filter(
       (i) => results[i.op]?.passed === results[i.op]?.total && results[i.op],
     ).length;
   useEffect(() => {
-    setSaved('保存中…');
     const timer = setTimeout(() => {
       try {
         validateProject(project);
         localStorage.setItem(storageKey, JSON.stringify(project));
-        setSaved('このブラウザに保存済み');
+        setSaveError('');
       } catch {
-        setSaved('保存できません。コードの長さやブラウザ設定を確認してください');
+        setSaveError('コードを自動保存できません。必要なコードをコピーしておいてください。');
       }
     }, 200);
     return () => clearTimeout(timer);
@@ -151,7 +150,6 @@ export default function App() {
     if (target === 'cpu') {
       cancelTest();
       setResults({});
-      setSelected(undefined);
     }
     setNotice({ message: '' });
     setProject((p) => ({ ...p, [target]: text }));
@@ -161,7 +159,6 @@ export default function App() {
     cancelTest();
     invalidateRun();
     setResults({});
-    setSelected(undefined);
     setProject(next);
     setNotice({ message: 'コードを置き換えました。「置き換えを取り消す」で戻せます。' });
   }
@@ -170,7 +167,6 @@ export default function App() {
     cancelTest();
     setNotice({ message: '' });
     setTesting(true);
-    setSelected(op);
     if (op === undefined) setResults({});
     else
       setResults((r) => {
@@ -197,7 +193,6 @@ export default function App() {
       if (testWorker.current !== worker) return;
       if (data.type === 'test-result') {
         setResults((r) => ({ ...r, [data.result.op]: data.result }));
-        if (data.result.failures.length) setSelected((current) => current ?? data.result.op);
       } else if (data.type === 'error') {
         cancelTest();
         setNotice({
@@ -271,43 +266,24 @@ export default function App() {
     runWorker.current?.postMessage({ type: 'stop' });
     setRunning(false);
   }
-  async function importProject(selected?: File) {
-    if (!selected) return;
+  function fillAnswer(op: number) {
     try {
-      if (selected.size > 500000) throw new Error('500KB以内のプロジェクトを選んでください。');
-      replace(validateProject(JSON.parse(await selected.text())));
-    } catch (e) {
-      setNotice({ message: e instanceof Error ? e.message : String(e) });
-    } finally {
-      if (file.current) file.current.value = '';
+      const answer = insertAnswer(project.cpu, op);
+      if (answer.source !== project.cpu) {
+        setBackup(project);
+        change('cpu', answer.source);
+      }
+      setLocation({ target: 'cpu', line: answer.line, key: Date.now() });
+      document.getElementById('cpu-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (error) {
+      setNotice({
+        message: `解答を入れられませんでした。コードは変更していません。 ${error instanceof Error ? error.message : String(error)}`,
+        target: 'cpu',
+      });
     }
   }
-  const selectedResult = selected === undefined ? undefined : results[selected];
   return (
     <>
-      <header className="site-header">
-        <a className="brand" href="#top">
-          <span className="chip-logo">▦</span>
-          <strong>
-            TD4<span> / HANDS-ON</span>
-          </strong>
-        </a>
-        <span className="event-label">KC3 2026 · uyuki</span>
-        <div className="file-actions">
-          <span className="saved">{saved}</span>
-          <button onClick={() => download('td4-project.json', JSON.stringify(project, null, 2))}>
-            保存用JSON
-          </button>
-          <button onClick={() => file.current?.click()}>読み込む</button>
-          <input
-            hidden
-            ref={file}
-            type="file"
-            accept=".json,application/json"
-            onChange={(e) => void importProject(e.target.files?.[0])}
-          />
-        </div>
-      </header>
       <main id="top">
         <section className="intro">
           <div className="intro-copy">
@@ -335,10 +311,22 @@ export default function App() {
             <nav className="resource-links" aria-label="講義の関連リンク">
               <a
                 className="resource-link"
+                href="https://x.com/uyuki234"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ResourceIcon name="x" />
+                <small>X</small>
+                <strong>作者SNS</strong>
+                <span aria-hidden="true">↗</span>
+              </a>
+              <a
+                className="resource-link"
                 href="https://speakerdeck.com/uyuki234/verilog-de-manabu-cpu-jisaku-nyuumon"
                 target="_blank"
                 rel="noreferrer"
               >
+                <ResourceIcon name="slides" />
                 <small>SLIDES</small>
                 <strong>講義スライド</strong>
                 <span aria-hidden="true">↗</span>
@@ -349,6 +337,7 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
               >
+                <ResourceIcon name="github" />
                 <small>GITHUB</small>
                 <strong>リポジトリ</strong>
                 <span aria-hidden="true">↗</span>
@@ -359,6 +348,7 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
               >
+                <ResourceIcon name="event" />
                 <small>KC3</small>
                 <strong>講義ページ</strong>
                 <span aria-hidden="true">↗</span>
@@ -366,6 +356,11 @@ export default function App() {
             </nav>
           </div>
         </section>
+        {!fullscreen && saveError && (
+          <div className="notice" role="alert">
+            {saveError}
+          </div>
+        )}
         {!fullscreen && notice.message && (
           <div className="notice" role="alert">
             <span>{notice.message}</span>
@@ -437,8 +432,8 @@ export default function App() {
               </Suspense>
               {fullscreen && (
                 <div className="fullscreen-feedback" aria-live="polite">
-                  {notice.message ? (
-                    <span role="alert">{notice.message}</span>
+                  {notice.message || saveError ? (
+                    <span role="alert">{notice.message || saveError}</span>
                   ) : (
                     <span>{testing ? '検証中…' : `${count} / 12 命令成功`}</span>
                   )}
@@ -448,12 +443,12 @@ export default function App() {
                         setFullscreen(false);
                         requestAnimationFrame(() =>
                           document
-                            .querySelector('.test-detail')
+                            .querySelector('.instruction-list')
                             ?.scrollIntoView({ block: 'center' }),
                         );
                       }}
                     >
-                      結果の詳細を見る
+                      命令表を見る
                     </button>
                   )}
                 </div>
@@ -570,7 +565,10 @@ export default function App() {
                 return (
                   <div
                     key={i.op}
-                    className={`instruction-row ${selected === i.op ? 'selected' : ''}`}
+                    className={`instruction-row ${r ? (passed ? 'passed' : 'failed') : ''}`}
+                    data-testid={`instruction-${i.op}`}
+                    role="group"
+                    aria-label={`${i.name}：${r ? (passed ? 'テスト成功' : 'テスト失敗') : '未検証'}`}
                   >
                     <div className="instruction-meta">
                       <code>{binary(i.op)}</code>
@@ -590,12 +588,11 @@ export default function App() {
                         テスト
                       </button>
                       <button
-                        className={`test-status ${r ? (passed ? 'pass' : 'fail') : ''}`}
-                        disabled={!r}
-                        onClick={() => setSelected(i.op)}
-                        data-testid={`status-${i.op}`}
+                        aria-label={`${i.name}の解答を入れる`}
+                        disabled={testing}
+                        onClick={() => fillAnswer(i.op)}
                       >
-                        {r ? (passed ? '✓ 成功' : '要確認') : '未検証'}
+                        解答を入れる
                       </button>
                     </div>
                   </div>
@@ -605,77 +602,6 @@ export default function App() {
             <p className="common-note">
               共通処理：A・B・OUTは保持、IPは+1、CFは0。ADDだけがCFを上書きし、JNCは現在のCFを使います。
             </p>
-            <div className="test-detail" aria-live="polite">
-              <h3>
-                {selectedResult
-                  ? `${instructions.find((i) => i.op === selected)?.name ?? '未定義命令'} の結果`
-                  : 'テストで何を確認する？'}
-              </h3>
-              {selectedResult ? (
-                <>
-                  <p className={selectedResult.passed === selectedResult.total ? 'pass' : 'fail'}>
-                    {selectedResult.passed} / {selectedResult.total} ケース成功
-                  </p>
-                  {selectedResult.failures.map((f, idx) => (
-                    <div className="failure" key={idx}>
-                      <p>
-                        <code>{binary(f.byte, 8)}</code> · Im={f.byte & 15} · switch={f.input}
-                      </p>
-                      {f.error && <p className="fail">{f.error}</p>}
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>信号</th>
-                            <th>現在</th>
-                            <th>期待する次の値</th>
-                            <th>実際</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {stateKeys.map((k) => (
-                            <tr
-                              key={k}
-                              className={
-                                f.actual && f.actual[k] !== f.expected[k] ? 'mismatch' : ''
-                              }
-                            >
-                              <th>{k.toUpperCase()}</th>
-                              <td>{f.before[k]}</td>
-                              <td>{f.expected[k]}</td>
-                              <td>{f.actual?.[k] ?? '—'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ))}
-                  {!selectedResult.failures.length && (
-                    <p>検証した入力では、すべてのレジスタが期待どおりに更新されました。</p>
-                  )}
-                </>
-              ) : (
-                <p>
-                  値0〜15、CFの0/1、IPの通常進行と15→0を確認します。書き換える値だけでなく、保持する値も比較します。失敗例は最大3件表示します。
-                </p>
-              )}
-              {[8, 10, 12, 13].some((op) => results[op]) && (
-                <details>
-                  <summary>未定義命令の共通処理</summary>
-                  {[8, 10, 12, 13].map(
-                    (op) =>
-                      results[op] && (
-                        <button
-                          key={op}
-                          className={results[op].passed === results[op].total ? 'pass' : 'fail'}
-                          onClick={() => setSelected(op)}
-                        >
-                          {binary(op)}: {results[op].passed}/{results[op].total}
-                        </button>
-                      ),
-                  )}
-                </details>
-              )}
-            </div>
           </section>
         </div>
         <section id="simulator" className="simulation">
@@ -719,9 +645,6 @@ export default function App() {
                   番地は0〜15、命令は8bit。たとえば <code>8'b1011_0101</code> は <code>OUT 5</code>
                   。ROMでは <code>addr</code> を読み、全番地で <code>data</code> を決めてください。
                 </p>
-                <button className="text-button" onClick={() => download('rom.sv', project.rom)}>
-                  rom.svをダウンロード ↗
-                </button>
               </div>
             </section>
             <section className="cpu-view">

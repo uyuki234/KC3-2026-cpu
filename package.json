@@ -15,6 +15,7 @@
     "format": "prettier --write src tests scripts *.ts *.json index.html"
   },
   "dependencies": {
+    "@codemirror/commands": "6.11.1",
     "@codemirror/language": "6.12.4",
     "@codemirror/legacy-modes": "6.5.4",
     "@codemirror/view": "6.43.12",

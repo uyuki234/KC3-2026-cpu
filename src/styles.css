@@ -1,9 +1,9 @@
 :root {
   font-family: 'Segoe UI', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
-  color: #223149;
+  color: #202833;
   background: #f6f7f4;
   line-height: 1.7;
-  font-size: 14px;
+  font-size: 16px;
   font-synthesis: none;
 }
 * {
@@ -35,9 +35,9 @@ summary {
 button {
   background: white;
   border: 1px solid #d7dfe8;
-  color: #40536e;
+  color: #202833;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 14px;
   padding: 7px 12px;
   transition: background 0.15s;
 }
@@ -73,22 +73,22 @@ p {
   margin-top: 0;
 }
 h1 {
-  font-size: 37px;
+  font-size: 39px;
   letter-spacing: -1px;
   line-height: 1.5;
   margin-bottom: 16px;
 }
 h2 {
-  font-size: 21px;
+  font-size: 23px;
   line-height: 1.5;
   margin-bottom: 0;
 }
 h3 {
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 10px;
 }
 p {
-  color: #63728a;
+  color: #202833;
 }
 a {
   color: #315ce5;
@@ -101,71 +101,14 @@ code {
   font-family: Consolas, 'SFMono-Regular', monospace;
 }
 small {
-  font-size: 10px;
+  font-size: 12px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.7px;
-  color: #7f8b9c;
+  color: #202833;
   margin-bottom: 10px;
-}
-.site-header {
-  padding: 18px max(26px, calc((100vw - 1380px) / 2));
-  background: white;
-  border-bottom: 1px solid #e1e6ea;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  min-height: 75px;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #25344e;
-  white-space: nowrap;
-}
-.brand:hover {
-  text-decoration: none;
-}
-.chip-logo {
-  font-size: 27px;
-  line-height: 32px;
-  width: 34px;
-  height: 34px;
-  text-align: center;
-  color: #fff;
-  background: #315ce5;
-  border-radius: 8px;
-}
-.brand strong {
-  font-size: 17px;
-  letter-spacing: 0.8px;
-}
-.brand strong > span {
-  color: #8490a1;
-  font-size: 12px;
-  font-weight: 400;
-}
-.event-label {
-  font-size: 10px;
-  color: #8b98aa;
-}
-.file-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-.saved {
-  font-size: 10px;
-  color: #8091a6;
-  margin-right: 12px;
-  max-width: 260px;
-}
-.file-actions button {
-  font-size: 10px;
 }
 main {
   max-width: 1380px;
@@ -187,7 +130,7 @@ main {
   min-width: 0;
 }
 .intro-description {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.9;
   margin: 0;
 }
@@ -200,14 +143,15 @@ main {
 .resource-link {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr auto;
-  min-width: 150px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  column-gap: 10px;
+  min-width: 180px;
   padding: 10px 13px;
   border: 1px solid #dbe2eb;
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 2px 8px #2339570a;
-  color: #273b58;
+  color: #202833;
   line-height: 1.3;
   transition:
     border-color 0.15s,
@@ -220,39 +164,52 @@ a.resource-link:hover {
   text-decoration: none;
   transform: translateY(-1px);
 }
+.resource-icon {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  color: #315ce5;
+}
 .resource-link small {
-  grid-column: 1 / -1;
-  color: #70809a;
+  grid-column: 2;
+  grid-row: 1;
+  color: #202833;
   font:
-    8px Consolas,
+    12px Consolas,
     monospace;
   letter-spacing: 1.1px;
 }
 .resource-link strong {
+  grid-column: 2;
+  grid-row: 2;
   margin-top: 3px;
-  font-size: 11px;
+  font-size: 13px;
 }
 .resource-link > span {
+  grid-column: 3;
+  grid-row: 1 / 3;
   align-self: end;
   color: #315ce5;
-  font-size: 11px;
+  font-size: 13px;
 }
 .intro-guide {
   margin-top: 20px;
 }
 .edition {
   font:
-    10px Consolas,
+    12px Consolas,
     monospace;
   letter-spacing: 1px;
-  color: #7c8b9d;
+  color: #202833;
 }
 .intro-guide ol {
   list-style: none;
   padding: 0;
   margin: 12px 0;
-  font-size: 12px;
-  color: #637389;
+  font-size: 14px;
+  color: #202833;
 }
 .intro-guide li {
   margin: 12px 0;
@@ -260,16 +217,16 @@ a.resource-link:hover {
 .intro-guide b {
   color: #315ce5;
   font:
-    11px Consolas,
+    13px Consolas,
     monospace;
   padding-right: 12px;
 }
 .intro-guide a {
-  font-size: 12px;
+  font-size: 14px;
 }
 .build-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(380px, 1fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(420px, 1fr);
   gap: 30px;
   align-items: start;
 }
@@ -281,12 +238,12 @@ a.resource-link:hover {
   margin-bottom: 14px;
 }
 .section-heading .eyebrow {
-  font-size: 9px;
+  font-size: 12px;
   margin-bottom: 8px;
-  color: #6e82a0;
+  color: #202833;
 }
 .badge {
-  font-size: 10px;
+  font-size: 12px;
   color: #637b59;
   background: #ecf1e6;
   border: 1px solid #dce5d4;
@@ -295,7 +252,7 @@ a.resource-link:hover {
   white-space: nowrap;
 }
 .section-description {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
   margin-bottom: 22px;
 }
@@ -309,7 +266,7 @@ a.resource-link:hover {
   color: #cdd8e9;
   padding: 12px 15px;
   border-radius: 9px 9px 0 0;
-  font-size: 11px;
+  font-size: 13px;
 }
 .editor-caption > span:first-child {
   font-family: Consolas, monospace;
@@ -324,11 +281,11 @@ a.resource-link:hover {
 }
 .editor-caption small {
   margin-left: 12px;
-  font-size: 10px;
+  font-size: 12px;
   color: #8d9eb7;
 }
 .editor-caption button {
-  font-size: 10px;
+  font-size: 12px;
   padding: 4px 8px;
   background: #2c3b51;
   color: #bccde5;
@@ -367,7 +324,7 @@ a.resource-link:hover {
   color: #c0ccdc;
   background: transparent;
   border-color: #53647c;
-  font-size: 11px;
+  font-size: 13px;
 }
 .code-toolbar .fullscreen-toggle:hover {
   background: #2c3b51;
@@ -378,13 +335,12 @@ a.resource-link:hover {
   justify-content: flex-end;
   padding: 10px 0 18px;
 }
-.sub-actions button,
-.text-button {
+.sub-actions button {
   background: transparent;
   border: 0;
   padding: 4px 0;
-  font-size: 10px;
-  color: #6b7f9a;
+  font-size: 12px;
+  color: #202833;
 }
 .hints {
   border: 1px solid #dfe5e9;
@@ -406,30 +362,30 @@ a.resource-link:hover {
   white-space: nowrap;
 }
 summary {
-  color: #4f6686;
-  font-size: 12px;
+  color: #202833;
+  font-size: 14px;
   font-weight: 600;
 }
 details p {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.9;
   margin: 12px 0 0;
 }
 details code {
-  font-size: 11px;
-  color: #3b5980;
+  font-size: 13px;
+  color: #202833;
   background: #f3f5f9;
   padding: 1px 3px;
 }
 .completion {
   font:
-    28px Consolas,
+    30px Consolas,
     monospace;
   color: #315ce5;
 }
 .completion span {
-  font-size: 14px;
-  color: #9da9b8;
+  font-size: 16px;
+  color: #202833;
 }
 .instruction-list {
   border: 1px solid #dfe5e9;
@@ -439,7 +395,7 @@ details code {
 }
 .instruction-row {
   display: grid;
-  grid-template-columns: 43px minmax(0, 1fr) 56px;
+  grid-template-columns: 48px minmax(0, 1fr) 96px;
   gap: 12px;
   align-items: center;
   padding: 12px 14px;
@@ -448,13 +404,9 @@ details code {
 .instruction-row:last-child {
   border: 0;
 }
-.instruction-row.selected {
-  background: #f0f4ff;
-  box-shadow: inset 3px 0 #6c8eed;
-}
 .instruction-meta code {
-  font-size: 11px;
-  color: #8596ad;
+  font-size: 13px;
+  color: #202833;
   display: block;
 }
 .reference,
@@ -462,98 +414,50 @@ details code {
   display: block;
   color: #678660;
   background: #edf3e8;
-  font-size: 9px;
+  font-size: 12px;
   border-radius: 3px;
   text-align: center;
   margin-top: 4px;
-  width: 32px;
+  width: 40px;
 }
 .difficulty {
   color: #a65359;
   background: #fbeaec;
-  width: 38px;
+  width: 44px;
 }
 .instruction-body strong {
   font:
-    13px Consolas,
+    700 15px Consolas,
     monospace;
-  color: #304563;
+  color: #202833;
 }
 .instruction-body p {
-  font-size: 10px;
-  color: #77859a;
+  font-size: 12px;
+  color: #202833;
   margin: 4px 0 0;
   line-height: 1.6;
 }
+.instruction-actions {
+  display: grid;
+  gap: 7px;
+}
 .instruction-actions button {
-  font-size: 10px;
+  font-size: 12px;
   padding: 3px 7px;
   display: block;
   width: 100%;
 }
-.instruction-actions .test-status {
-  border: 0;
-  background: transparent;
-  font-size: 10px;
-  padding: 4px 0 0;
-  opacity: 1;
-  color: #9aa6b5;
-}
-.instruction-actions .pass,
-.pass {
-  color: #387c4a;
-}
-.instruction-actions .fail,
-.fail {
-  color: #b45336;
-}
 .common-note {
-  font-size: 11px;
+  font-size: 13px;
   padding: 14px 0;
   margin: 0;
-  color: #76849a;
-}
-.test-detail {
-  border: 1px solid #dfe5e9;
-  background: white;
-  border-radius: 9px;
-  padding: 17px;
-}
-.test-detail > p {
-  font-size: 11px;
-  line-height: 1.9;
-  margin: 8px 0;
-}
-.test-detail details {
-  border-top: 1px solid #e5e9ef;
-  margin-top: 12px;
-  padding-top: 12px;
-}
-.test-detail details button {
-  font-size: 10px;
-  margin: 8px 6px 0 0;
-}
-.failure {
-  margin-top: 15px;
-  border: 1px solid #e5e9ef;
-  border-radius: 7px;
-  overflow: hidden;
-}
-.failure > p {
-  font-size: 11px;
-  margin: 0;
-  padding: 8px 10px;
-  background: #f5f7fb;
-}
-.failure > p.fail {
-  background: #fff0ea;
-  overflow-wrap: anywhere;
+  color: #202833;
 }
 table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 11px;
+  font-size: 13px;
 }
 th,
 td {
@@ -562,18 +466,11 @@ td {
 }
 th {
   font-weight: 500;
-  color: #7a8ca3;
-  font-size: 10px;
+  color: #202833;
+  font-size: 12px;
 }
 thead {
   background: #f7f9fc;
-}
-.mismatch {
-  background: #fff0e8;
-  color: #a54726;
-}
-.mismatch th {
-  color: #a54726;
 }
 .notice {
   display: flex;
@@ -585,14 +482,14 @@ thead {
   border-radius: 8px;
   padding: 13px 17px;
   margin-bottom: 18px;
-  font-size: 12px;
+  font-size: 14px;
   overflow-wrap: anywhere;
 }
 .notice > span {
   flex: 1;
 }
 .notice button {
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
 }
 .undo {
@@ -600,7 +497,7 @@ thead {
   margin-bottom: 15px;
 }
 .undo button {
-  font-size: 11px;
+  font-size: 13px;
 }
 .simulation {
   border-top: 1px solid #dce3e7;
@@ -608,7 +505,7 @@ thead {
   padding-top: 32px;
 }
 .simulation > .section-heading h2 {
-  font-size: 25px;
+  font-size: 27px;
 }
 .run-grid {
   display: grid;
@@ -634,16 +531,16 @@ thead {
 }
 .rom-description h3 {
   color: #596d4a;
-  font-size: 12px;
+  font-size: 14px;
 }
 .rom-description p {
-  font-size: 11px;
-  color: #718068;
+  font-size: 13px;
+  color: #202833;
   line-height: 1.9;
   margin-bottom: 10px;
 }
 .rom-description code {
-  font-size: 11px;
+  font-size: 13px;
 }
 .rom-description button {
   color: #617653;
@@ -663,7 +560,7 @@ thead {
   justify-content: space-between;
   gap: 10px;
   font:
-    9px Consolas,
+    12px Consolas,
     monospace;
   letter-spacing: 1px;
   color: #8da2c0;
@@ -688,7 +585,7 @@ thead {
   border: 2px solid #5b7050;
   color: #8ca377;
   font:
-    18px Consolas,
+    20px Consolas,
     monospace;
   box-shadow: inset 0 3px 6px #0003;
 }
@@ -704,7 +601,7 @@ thead {
   display: block;
   color: #7e92af;
   font:
-    9px Consolas,
+    12px Consolas,
     monospace;
   letter-spacing: 1px;
   margin-top: 12px;
@@ -726,20 +623,20 @@ thead {
   display: block;
   color: #8299b8;
   font:
-    9px Consolas,
+    12px Consolas,
     monospace;
   letter-spacing: 1px;
 }
 .register-bank strong {
   display: block;
   font:
-    25px Consolas,
+    27px Consolas,
     monospace;
   margin: 7px 0;
   color: #e2eaf6;
 }
 .register-bank code {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: #7d97bc;
 }
@@ -754,13 +651,13 @@ thead {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 10px;
+  font-size: 12px;
   padding-top: 20px;
   color: #8198b9;
 }
 .current-instruction strong {
   font:
-    12px Consolas,
+    14px Consolas,
     'Yu Gothic UI',
     sans-serif;
   color: #b6c7df;
@@ -772,14 +669,14 @@ thead {
   padding: 17px 0;
 }
 .playback button {
-  font-size: 12px;
+  font-size: 14px;
 }
 .playback label {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 10px;
-  color: #8595aa;
+  font-size: 12px;
+  color: #202833;
   margin-left: auto;
 }
 .playback select {
@@ -787,8 +684,8 @@ thead {
   border: 1px solid #d9e1ec;
   border-radius: 5px;
   background: white;
-  color: #506783;
-  font-size: 10px;
+  color: #202833;
+  font-size: 12px;
 }
 .inputs {
   display: flex;
@@ -802,13 +699,13 @@ thead {
   margin-bottom: 18px;
 }
 .inputs h3 {
-  font-size: 12px;
+  font-size: 14px;
   margin-bottom: 4px;
 }
 .inputs p {
-  font-size: 10px;
+  font-size: 12px;
   margin: 0;
-  color: #8997a9;
+  color: #202833;
 }
 .switches {
   display: flex;
@@ -818,14 +715,14 @@ thead {
   min-width: 34px;
   padding: 4px 9px;
   font:
-    14px Consolas,
+    16px Consolas,
     monospace;
   background: #f3f5f8;
 }
 .switches small {
   display: block;
-  font-size: 9px;
-  color: #8f9db1;
+  font-size: 12px;
+  color: #202833;
   margin-bottom: 4px;
 }
 .switches button[aria-pressed='true'] {
@@ -847,12 +744,12 @@ thead {
   margin-bottom: 12px;
 }
 .live-rom-title h3 {
-  font-size: 12px;
+  font-size: 14px;
   margin: 0;
 }
 .live-rom-title span {
-  font-size: 9px;
-  color: #8c99ad;
+  font-size: 12px;
+  color: #202833;
 }
 .rom-words {
   display: grid;
@@ -865,19 +762,19 @@ thead {
   gap: 10px;
   padding: 6px 7px;
   font:
-    10px Consolas,
+    12px Consolas,
     monospace;
   border-radius: 4px;
 }
 .rom-words span {
-  color: #8798b1;
+  color: #202833;
 }
 .rom-words code {
-  color: #889ab5;
+  color: #202833;
 }
 .rom-words strong {
   font-weight: 400;
-  color: #506885;
+  color: #202833;
 }
 .rom-words .current {
   background: #e9efff;
@@ -888,8 +785,8 @@ thead {
   color: #315ce5;
 }
 .muted {
-  font-size: 11px;
-  color: #8593a6;
+  font-size: 13px;
+  color: #202833;
 }
 .history {
   margin-top: 16px;
@@ -899,11 +796,11 @@ thead {
   padding: 15px;
 }
 .history summary {
-  font-size: 11px;
+  font-size: 13px;
 }
 .history table {
   margin-top: 14px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .history td,
 .history th {
@@ -919,16 +816,12 @@ footer {
   display: flex;
   justify-content: space-between;
   gap: 15px;
-  font-size: 10px;
-  color: #8f9bac;
+  font-size: 12px;
+  color: #202833;
 }
 @media (max-width: 1100px) {
-  .saved,
-  .event-label {
-    display: none;
-  }
   .build-grid {
-    grid-template-columns: minmax(0, 1.25fr) minmax(330px, 1fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(380px, 1fr);
     gap: 22px;
   }
   .run-grid {
@@ -939,7 +832,7 @@ footer {
     padding: 10px;
   }
   .instruction-body p {
-    font-size: 10px;
+    font-size: 12px;
   }
   .board {
     padding: 20px 16px;
@@ -951,34 +844,31 @@ footer {
     margin-left: 0;
   }
   .section-heading h2 {
-    font-size: 19px;
+    font-size: 21px;
   }
   .badge {
-    font-size: 9px;
+    font-size: 12px;
   }
   .intro h1 {
-    font-size: 33px;
+    font-size: 35px;
   }
   .code-toolbar .primary {
-    font-size: 11px;
+    font-size: 13px;
     padding: 10px 14px;
   }
 }
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
   main {
     padding: 0 18px;
-  }
-  .site-header {
-    padding: 15px 18px;
   }
   .intro {
     padding-top: 30px;
   }
   .intro h1 {
-    font-size: 28px;
+    font-size: 30px;
   }
   .intro-guide li {
-    font-size: 11px;
+    font-size: 13px;
   }
   .build-grid,
   .run-grid {
@@ -989,30 +879,21 @@ footer {
     margin-top: 5px;
   }
   .instruction-row {
-    grid-template-columns: 48px 1fr 100px;
+    grid-template-columns: 48px minmax(0, 1fr) 96px;
     padding: 12px 15px;
     gap: 12px;
   }
   .instruction-body p {
-    font-size: 11px;
-  }
-  .instruction-actions {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+    font-size: 13px;
   }
   .instruction-actions button {
-    font-size: 10px;
-  }
-  .instruction-actions .test-status {
-    padding: 0;
-    white-space: nowrap;
+    font-size: 12px;
   }
   .section-heading h2 {
-    font-size: 21px;
+    font-size: 23px;
   }
   .simulation > .section-heading h2 {
-    font-size: 22px;
+    font-size: 24px;
   }
   .playback label {
     margin-left: auto;
@@ -1029,48 +910,19 @@ footer {
   .cm-scroller {
     max-height: 520px !important;
   }
-  .saved {
-    display: none;
-  }
   .rom-words > div {
-    font-size: 12px;
+    font-size: 14px;
   }
   .live-rom-title span {
-    font-size: 10px;
+    font-size: 12px;
   }
 }
 @media (max-width: 500px) {
-  .brand strong {
-    font-size: 15px;
-  }
-  .brand strong > span {
-    font-size: 9px;
-  }
-  .brand {
-    gap: 7px;
-  }
-  .chip-logo {
-    width: 28px;
-    height: 28px;
-    font-size: 23px;
-    line-height: 27px;
-  }
-  .file-actions {
-    gap: 5px;
-  }
-  .file-actions button {
-    font-size: 9px;
-    padding: 5px 7px;
-  }
-  .site-header {
-    gap: 10px;
-    padding: 13px;
-  }
   .intro {
     margin-bottom: 26px;
   }
   .intro h1 {
-    font-size: 30px;
+    font-size: 32px;
   }
   .resource-links {
     display: grid;
@@ -1079,9 +931,6 @@ footer {
   .resource-link {
     min-width: 0;
   }
-  .resource-link:first-child {
-    grid-column: 1 / -1;
-  }
   .intro-guide ol {
     margin: 10px 0;
   }
@@ -1089,22 +938,22 @@ footer {
     margin: 7px 0;
   }
   .intro-guide a {
-    font-size: 11px;
+    font-size: 13px;
   }
   .edition {
-    font-size: 9px;
+    font-size: 12px;
   }
   .section-heading {
     gap: 8px;
   }
   .section-heading h2 {
-    font-size: 19px;
+    font-size: 21px;
   }
   .section-description {
-    font-size: 11px;
+    font-size: 13px;
   }
   .badge {
-    font-size: 9px;
+    font-size: 12px;
     padding: 4px 8px;
   }
   .editor-caption {
@@ -1112,27 +961,21 @@ footer {
   }
   .editor-caption small {
     margin-left: 7px;
-    font-size: 9px;
+    font-size: 12px;
   }
   .code-toolbar {
     padding: 12px;
   }
   .instruction-row {
-    grid-template-columns: 38px 1fr 56px;
+    grid-template-columns: 44px minmax(0, 1fr) 92px;
     gap: 9px;
     padding: 10px;
   }
-  .instruction-actions {
-    display: block;
-  }
-  .instruction-actions .test-status {
-    padding-top: 4px;
-  }
   .instruction-body p {
-    font-size: 10px;
+    font-size: 12px;
   }
   .instruction-body strong {
-    font-size: 12px;
+    font-size: 14px;
   }
   .simulation > .section-heading {
     display: block;
@@ -1142,7 +985,7 @@ footer {
     margin-top: 12px;
   }
   .simulation > .section-heading h2 {
-    font-size: 22px;
+    font-size: 24px;
   }
   .board {
     padding: 20px 15px;
@@ -1155,13 +998,13 @@ footer {
     gap: 6px;
   }
   .register-bank strong {
-    font-size: 23px;
+    font-size: 25px;
   }
   .playback {
     gap: 6px;
   }
   .playback button {
-    font-size: 11px;
+    font-size: 13px;
     padding: 8px 11px;
   }
   .playback button.primary {
@@ -1176,7 +1019,7 @@ footer {
     gap: 10px;
   }
   .inputs p {
-    font-size: 9px;
+    font-size: 12px;
     max-width: 150px;
   }
   .switches {
@@ -1191,22 +1034,22 @@ footer {
   }
   .rom-words > div {
     gap: 7px;
-    font-size: 10px;
+    font-size: 12px;
     padding: 6px;
   }
   .live-rom-title span {
-    font-size: 8px;
+    font-size: 12px;
   }
   footer {
     flex-direction: column;
-    font-size: 9px;
+    font-size: 12px;
     gap: 5px;
   }
   .sub-actions {
     gap: 12px;
   }
   .sub-actions button {
-    font-size: 9px;
+    font-size: 12px;
   }
 }
 .code-panel,
@@ -1250,7 +1093,7 @@ footer {
   padding: 8px 15px;
   color: #c0ccdc;
   background: #213047;
-  font-size: 12px;
+  font-size: 14px;
   max-height: 25dvh;
   overflow: auto;
   overflow-wrap: anywhere;
@@ -1263,4 +1106,27 @@ footer {
   background: transparent;
   color: #c0ccdc;
   border-color: #53647c;
+}
+.instruction-row.passed {
+  background: #edf7ed;
+}
+.instruction-row.failed {
+  background: #fff0f0;
+}
+.instruction-row:focus-within {
+  box-shadow: inset 3px 0 #6c8eed;
+}
+@media (max-width: 500px) {
+  .resource-link {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    column-gap: 6px;
+    padding: 10px 8px;
+  }
+  .resource-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+  }
 }

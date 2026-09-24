@@ -7,6 +7,8 @@ import {
   cpuDownload,
   initialCode,
   initialRom,
+  insertAnswer,
+  legacyInitialCode,
   instructions,
   resetState,
   testInstruction,
@@ -79,6 +81,48 @@ describe('演習の命令テスト', () => {
   });
   it.each([8, 10, 12, 13])('未定義opcode %i は共通処理だけを行う', (op) => {
     expect(testInstruction(answer, op).passed).toBe(1024);
+  });
+});
+describe('命令ごとの解答挿入', () => {
+  it.each(instructions)('$name の処理だけを書き換えて命令テストに合格する', ({ op }) => {
+    const result = insertAnswer(initialCode, op);
+    expect(testInstruction(compileCpu(result.source), op).passed).toBe(1024);
+    const changedLines = result.source.split('\n');
+    const originalLines = initialCode.split('\n');
+    expect(changedLines).toHaveLength(originalLines.length);
+    for (let index = 0; index < originalLines.length; index++) {
+      if (index !== result.line - 1) expect(changedLines[index]).toBe(originalLines[index]);
+    }
+    expect(insertAnswer(result.source, op).source).toBe(result.source);
+  });
+  it('コメントや改行コード、ほかの命令の編集を保持して複数行の処理を置き換える', () => {
+    const source = initialCode
+      .replace(
+        "4'b0000: ;",
+        "4'h0: begin\n // 4'b0101: ;\n if (cf) next_a=2; else next_a=3;\n case (imm) 0: next_a=4; default: next_a=5; endcase\n end",
+      )
+      .replace("4'b0110: ;", "4'b0110: next_b = 9;")
+      .replaceAll('\n', '\r\n');
+    const result = insertAnswer(source, 0).source;
+    expect(result).toBe(
+      source.replace(/4'h0: begin[\s\S]*?\r\n end/, "4'h0: {next_cf, next_a} = a + imm;"),
+    );
+    expect(result).toContain("4'b0110: next_b = 9;");
+  });
+  it('三項演算子を含むJNCと旧雛形のbegin/endも置き換える', () => {
+    expect(testInstruction(compileCpu(insertAnswer(legacyInitialCode, 14).source), 14).passed).toBe(
+      1024,
+    );
+    expect(insertAnswer(answerCode, 14).source).toBe(answerCode);
+  });
+  it.each([
+    initialCode.replace("4'b0101:", "4'b0000:"),
+    initialCode.replace("4'b0000:", "4'b0000, 4'b1100:"),
+    initialCode.replace("4'b0000:", "4'b1100:"),
+    initialCode.replace("4'b0000: ;", "4'b0000: next_a = ;"),
+    initialCode.replace('case (opcode)', 'case (imm)'),
+  ])('構文エラーや対象が曖昧なコードには挿入しない', (source) => {
+    expect(() => insertAnswer(source, 0)).toThrow();
   });
 });
 describe('公開ROMとシミュレーション', () => {

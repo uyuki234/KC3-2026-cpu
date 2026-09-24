@@ -1,6 +1,6 @@
 import originalCpuFile from '../code/td4/cpu.sv?raw';
 import originalRom from '../code/td4/rom.sv?raw';
-import { compile, SvError, type Signals } from './sv';
+import { caseBodyRange, compile, SvError, type Signals } from './sv';
 
 export type State = { a: number; b: number; cf: number; ip: number; out: number };
 export const stateKeys = ['a', 'b', 'cf', 'ip', 'out'] as const;
@@ -82,6 +82,17 @@ const signals: Signals = {
   next_ip: { width: 4, writable: true },
   next_out: { width: 4, writable: true },
 };
+export function insertAnswer(source: string, op: number) {
+  const answer = caseBodyRange(answerCode, signals, 'opcode', op);
+  const target = caseBodyRange(source, signals, 'opcode', op);
+  return {
+    source:
+      source.slice(0, target.from) +
+      answerCode.slice(answer.from, answer.to) +
+      source.slice(target.to),
+    line: source.slice(0, target.from).split('\n').length,
+  };
+}
 export function compileCpu(source: string) {
   const evaluator = compile(source, signals);
   return (state: State, instruction: number, input: number): State => {

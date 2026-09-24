@@ -9,7 +9,8 @@ export class SvError extends Error {
     super(`${line}行目: ${message}`);
   }
 }
-type Token = { text: string; line: number };
+type Token = { text: string; line: number; from: number; to: number };
+type CaseArm = { matches: Expr[]; body: Statement; from: number; to: number };
 type Value = { bits: bigint; width: number; signed: boolean; fill?: boolean };
 type Expr =
   | { kind: 'literal'; value: Value; line: number }
@@ -27,7 +28,7 @@ type Statement =
   | {
       kind: 'case';
       expr: Expr;
-      arms: { matches: Expr[]; body: Statement }[];
+      arms: CaseArm[];
       otherwise?: Statement;
       unique: boolean;
       line: number;
@@ -87,11 +88,11 @@ function tokenize(source: string): Token[] {
         line,
         'unsupported',
       );
-    tokens.push({ text: match[0].replace(/\s/g, ''), line });
+    tokens.push({ text: match[0].replace(/\s/g, ''), line, from: i, to: i + match[0].length });
     i += match[0].length;
     if (tokens.length > 6000) throw new SvError('コードが複雑すぎます。', line, 'unsupported');
   }
-  tokens.push({ text: '<EOF>', line });
+  tokens.push({ text: '<EOF>', line, from: i, to: i });
   return tokens;
 }
 const precedence: Record<string, number> = {
@@ -179,7 +180,7 @@ class Parser {
         this.expect('(');
         const expr = this.expression();
         this.expect(')');
-        const arms: { matches: Expr[]; body: Statement }[] = [];
+        const arms: CaseArm[] = [];
         let otherwise: Statement | undefined;
         while (!this.accept('endcase')) {
           if (this.peek().text === '<EOF>')
@@ -192,7 +193,9 @@ class Parser {
             const matches = [this.expression()];
             while (this.accept(',')) matches.push(this.expression());
             this.expect(':');
-            arms.push({ matches, body: this.statement() });
+            const from = this.peek().from;
+            const body = this.statement();
+            arms.push({ matches, body, from, to: this.tokens[this.at - 1].to });
           }
         }
         return { kind: 'case', expr, arms, otherwise, unique, line: start.line };
@@ -492,6 +495,39 @@ function evaluate(
     }
   }
 }
+// Locate a single branch using the same grammar as the evaluator, not line matching.
+// Refuse ambiguous structures rather than modifying another instruction's code.
+export function caseBodyRange(source: string, signals: Signals, selector: string, match: number) {
+  const cases: Extract<Statement, { kind: 'case' }>[] = [];
+  function visit(statement: Statement) {
+    if (statement.kind === 'block') statement.statements.forEach(visit);
+    if (statement.kind === 'if') {
+      visit(statement.yes);
+      if (statement.no) visit(statement.no);
+    }
+    if (statement.kind === 'case') {
+      if (statement.expr.kind === 'name' && statement.expr.name === selector) cases.push(statement);
+      statement.arms.forEach((arm) => visit(arm.body));
+      if (statement.otherwise) visit(statement.otherwise);
+    }
+  }
+  visit(new Parser(source, signals).parse());
+  if (cases.length !== 1)
+    throw new Error(`case (${selector}) を1つにしてから解答を入れてください。`);
+  if (
+    cases[0].arms.some((arm) =>
+      arm.matches.some((expr) => expr.kind !== 'literal' || expr.value.fill !== undefined),
+    )
+  )
+    throw new Error('命令のcaseラベルは数値定数にしてから解答を入れてください。');
+  const arms = cases[0].arms.filter((arm) =>
+    arm.matches.some((expr) => expr.kind === 'literal' && expr.value.bits === BigInt(match)),
+  );
+  if (arms.length !== 1 || arms[0].matches.length !== 1)
+    throw new Error('対象の命令を単独のcaseラベルで1つ記述してから解答を入れてください。');
+  return { from: arms[0].from, to: arms[0].to };
+}
+
 export function compile(source: string, signals: Signals) {
   const program = new Parser(source, signals).parse();
   // Validate shapes even in branches that aren't reached in the first run.
