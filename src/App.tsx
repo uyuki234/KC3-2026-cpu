@@ -38,6 +38,7 @@ export default function App() {
     [location, setLocation] = useState<{ target: string; line: number; key: number }>();
   const [fullscreen, setFullscreen] = useState(false);
   const [countdown, setCountdown] = useState<Countdown>();
+  const [sampledInput, setSampledInput] = useState<number>();
   const timerSupported = useMemo(() => {
     try {
       return isTimerRom(compileRom(project.rom));
@@ -48,7 +49,7 @@ export default function App() {
   const remaining =
     !timerSupported || countdown?.kind === 'unavailable'
       ? undefined
-      : timerSeconds(countdown?.steps ?? initialTimerSteps(input), speed);
+      : timerSeconds(countdown?.displaySteps ?? initialTimerSteps(input), speed);
   const timerFinished = countdown?.kind === 'finished';
 
   const cpuWorkspace = useRef<HTMLDivElement>(null),
@@ -144,6 +145,7 @@ export default function App() {
     setPreparing(false);
     setFrame(undefined);
     setCountdown(undefined);
+    setSampledInput(undefined);
     setRomBytes([]);
     setHistory([]);
   }
@@ -233,6 +235,7 @@ export default function App() {
         setRomBytes(data.rom);
       } else if (data.type === 'frame') {
         setFrame(data.frame);
+        if (data.frame.cycle === 1) setSampledInput(data.frame.input);
         setCountdown(data.countdown);
         setHistory((h) => [...h.slice(-15), data.frame]);
       } else if (data.type === 'stopped') setRunning(false);
@@ -459,9 +462,6 @@ export default function App() {
               </div>
             </div>
             <div className="sub-actions">
-              <button onClick={() => replace({ ...project, cpu: initialCode })}>
-                配布コードに戻す
-              </button>
               <button
                 style={{ visibility: backup ? 'visible' : 'hidden' }}
                 disabled={!backup}
@@ -473,6 +473,9 @@ export default function App() {
                 }}
               >
                 置き換えを取り消す
+              </button>
+              <button onClick={() => replace({ ...project, cpu: initialCode })}>
+                配布コードに戻す
               </button>
             </div>
             <div className="hints">
@@ -638,14 +641,22 @@ export default function App() {
               <div className="rom-description">
                 <h3>配布ROMの動き</h3>
                 <p>
-                  スイッチで数え始める値を設定できるタイマーです。LEDの数字が増えるにつれて、残り時間が減ります。15を超えると残り時間が0になり、LEDと時間表示の点滅で終了を知らせます。
+                  スイッチで数え始める値を設定できるタイマーです。LEDの数字が増えるタイミングで、表示される残り時間も減ります。15を超えると残り時間が0になり、LEDと時間表示の点滅で終了を知らせます。
                 </p>
                 <p>
                   速度が「1命令／秒」のとき、開始から終了までの時間は約12〜162秒です。スイッチの値が大きいほど短くなります。途中でスイッチを変更した場合は、リセットして実行し直すと反映されます。
                 </p>
+              </div>
+              <div className="rom-description">
+                <h3>ROMコードの説明</h3>
                 <p>
-                  番地は0〜15、命令は8bit。たとえば <code>8'b1011_0101</code> は <code>OUT 5</code>
-                  。ROMでは <code>addr</code> を読み、全番地で <code>data</code> を決めてください。
+                  <code>addr</code> は命令を読み出す番地（0〜15）、<code>data</code>
+                  はその番地の8bitの命令です。CPUが指定した番地に応じて、実行する命令を返します。使わない番地の値は{' '}
+                  <code>default</code> で指定します。
+                </p>
+                <p>
+                  たとえば、<code>8'b1011_0101</code> は、LEDに5を表示する命令 <code>OUT 5</code>{' '}
+                  です。
                 </p>
               </div>
             </section>
@@ -778,6 +789,18 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+                <p
+                  className="switch-notice"
+                  role="status"
+                  style={{
+                    visibility:
+                      timerSupported && sampledInput !== undefined && input !== sampledInput
+                        ? 'visible'
+                        : 'hidden',
+                  }}
+                >
+                  スイッチを反映する場合はリセット
+                </p>
               </div>
               <div className="live-rom">
                 <div className="live-rom-title">

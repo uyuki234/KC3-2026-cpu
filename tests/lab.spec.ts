@@ -352,7 +352,7 @@ for (const width of [1440, 390]) {
   });
 }
 
-test('残り時間は実行・停止・速度変更に連動し、0秒でLEDと一緒に点滅する', async ({ page }) => {
+test('残り時間はLEDが変わるまで保持し、0秒でLEDと一緒に点滅する', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
   const speed = page.getByRole('combobox', { name: '実行速度' });
@@ -362,19 +362,29 @@ test('残り時間は実行・停止・速度変更に連動し、0秒でLEDと�
   for (let bit = 0; bit < 4; bit++)
     await page.getByRole('button', { name: `入力ビット${bit}` }).click();
   await expect(remaining).toHaveText('12秒');
+  const switchNotice = page.getByText('スイッチを反映する場合はリセット', { exact: true });
+  await expect(switchNotice).not.toBeVisible();
   await page.getByRole('button', { name: '▷ 実行', exact: true }).click();
   await expect(page.getByTestId('register-out')).toHaveText('15');
-  await expect(remaining).not.toHaveText('0秒');
+  await expect(remaining).toHaveText('10秒');
+  await expect
+    .poll(async () => Number((await page.getByTestId('cycle').innerText()).split(' ')[0]))
+    .toBeGreaterThanOrEqual(4);
+  await expect(page.getByTestId('register-out')).toHaveText('15');
+  await expect(remaining).toHaveText('10秒');
   await page.getByRole('button', { name: '停止', exact: true }).click();
   await expect(page.locator('.run-indicator')).toHaveText('STOPPED');
-  const steps = Number((await page.getByTestId('cycle').innerText()).split(' ')[0]);
-  await expect(remaining).toHaveText(`${12 - steps}秒`);
   await page.waitForTimeout(1100);
-  await expect(remaining).toHaveText(`${12 - steps}秒`);
+  await expect(remaining).toHaveText('10秒');
   await page.getByRole('button', { name: '入力ビット0' }).click();
-  await expect(remaining).toHaveText(`${12 - steps}秒`);
+  await expect(switchNotice).toBeVisible();
+  await expect(remaining).toHaveText('10秒');
+  await page.getByRole('button', { name: '入力ビット0' }).click();
+  await expect(switchNotice).not.toBeVisible();
+  await page.getByRole('button', { name: '入力ビット0' }).click();
+  await expect(switchNotice).toBeVisible();
   await speed.selectOption('100');
-  await expect(remaining).toHaveText(`${Math.ceil((12 - steps) / 10)}秒`);
+  await expect(remaining).toHaveText('1秒');
   await page.getByRole('button', { name: '▷ 再開', exact: true }).click();
   await expect(remaining).toHaveText('0秒');
   await expect(page.getByTestId('timer')).toContainText('時間です');
@@ -405,8 +415,52 @@ test('残り時間は実行・停止・速度変更に連動し、0秒でLEDと�
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('.inputs').screenshot({ path: 'test-results/timer-mobile.png' });
   await page.getByRole('button', { name: 'リセット', exact: true }).click();
+  await expect(switchNotice).not.toBeVisible();
   await speed.selectOption('1000');
   await expect(remaining).toHaveText('22秒');
+});
+
+test('ボタンは取り消し・配布コードの順で、ROMは左0〜7・右8〜15に並ぶ', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('.sub-actions button')).toHaveText([
+    '置き換えを取り消す',
+    '配布コードに戻す',
+  ]);
+  await expect(page.getByRole('button', { name: '置き換えを取り消す' })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: '配布ROMの動き' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ROMコードの説明' })).toBeVisible();
+  await expect(page.getByText('使わない番地の値は', { exact: false })).toContainText('default');
+  await page.getByRole('button', { name: 'リセット', exact: true }).click();
+  const rows = page.locator('.rom-words > div');
+  await expect(rows).toHaveCount(16);
+  await expect(rows.locator('span')).toHaveText(
+    Array.from({ length: 16 }, (_, i) => String(i).padStart(2, '0')),
+  );
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const bounds = await rows.evaluateAll((elements) =>
+      elements.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y };
+      }),
+    );
+    for (let i = 0; i < 8; i++) {
+      expect(bounds[i].x).toBe(bounds[0].x);
+      expect(bounds[i + 8].x).toBeGreaterThan(bounds[i].x);
+      expect(bounds[i + 8].y).toBe(bounds[i].y);
+      if (i > 0) expect(bounds[i].y).toBeGreaterThan(bounds[i - 1].y);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    const reset = await page
+      .getByRole('button', { name: '配布コードに戻す', exact: true })
+      .boundingBox();
+    const container = await page.locator('.sub-actions').boundingBox();
+    expect(Math.abs(reset!.x + reset!.width - container!.x - container!.width)).toBeLessThan(1);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.live-rom').screenshot({ path: 'test-results/rom-columns-mobile.png' });
 });
 
 test('未完成のCPUや別のROMでは不正確な残り時間を表示しない', async ({ page }) => {

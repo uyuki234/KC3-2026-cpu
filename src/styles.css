@@ -747,6 +747,11 @@ thead {
   display: flex;
   gap: 7px;
 }
+.inputs .switch-notice {
+  grid-column: 1 / -1;
+  justify-self: end;
+  font-size: 11px;
+}
 .switches button {
   min-width: 34px;
   padding: 4px 9px;
@@ -790,6 +795,8 @@ thead {
 .rom-words {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(8, auto);
+  grid-auto-flow: column;
   gap: 3px 14px;
 }
 .rom-words > div {

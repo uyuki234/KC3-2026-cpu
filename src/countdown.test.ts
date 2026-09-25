@@ -11,15 +11,18 @@ describe('配布ROMの残り時間', () => {
       const advance = createCountdown(rom);
       let state = resetState();
       const total = initialTimerSteps(input);
+      let displayed = total;
       for (let cycle = 1; cycle <= total + 6; cycle++) {
         const before = state;
         const byte = rom[state.ip];
         // 入力は最初のINだけで取り込まれる。
         const currentInput = cycle === 1 ? input : 15 - input;
         state = cpu(before, byte, currentInput);
+        if (before.out !== state.out || cycle >= total) displayed = Math.max(0, total - cycle);
         expect(advance(before, state, byte, currentInput)).toEqual({
           kind: cycle < total ? 'counting' : 'finished',
           steps: Math.max(0, total - cycle),
+          displaySteps: displayed,
         });
         if (cycle === total - 1) expect(state.out).toBe(15);
         if (cycle === total) {
@@ -29,6 +32,17 @@ describe('配布ROMの残り時間', () => {
       }
     },
   );
+  it('LEDが0の間は162秒を保ち、1になった時点で150秒に更新する', () => {
+    const advance = createCountdown(rom);
+    let state = resetState();
+    for (let cycle = 1; cycle <= 22; cycle++) {
+      const before = state;
+      const byte = rom[state.ip];
+      state = cpu(before, byte, 0);
+      const countdown = advance(before, state, byte, 0);
+      expect(countdown).toMatchObject({ displaySteps: cycle < 12 ? 162 : cycle < 22 ? 150 : 140 });
+    }
+  });
   it('実行速度を反映し、残り1命令以上なら0秒にしない', () => {
     expect(timerSeconds(initialTimerSteps(0), 1000)).toBe(162);
     expect(timerSeconds(initialTimerSteps(15), 1000)).toBe(12);
