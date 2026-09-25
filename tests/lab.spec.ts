@@ -500,12 +500,20 @@ test('ROMのTipsを開くと各行の説明と入れ子のループ枠を読め�
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await expect(wait).toBeVisible();
-    const outer = await count.boundingBox();
-    const inner = await wait.boundingBox();
-    expect(inner!.x).toBeGreaterThan(outer!.x);
-    expect(inner!.x + inner!.width).toBeLessThan(outer!.x + outer!.width);
-    expect(inner!.y).toBeGreaterThan(outer!.y);
-    expect(inner!.y + inner!.height).toBeLessThan(outer!.y + outer!.height);
+    // Measure in one browser task: resize/scroll anchoring can move the viewport
+    // between separate boundingBox calls on CI.
+    const { outer, inner } = await count.evaluate((element) => {
+      const outer = element.getBoundingClientRect();
+      const inner = element.querySelector('.wait-loop')!.getBoundingClientRect();
+      return {
+        outer: { x: outer.x, y: outer.y, right: outer.right, bottom: outer.bottom },
+        inner: { x: inner.x, y: inner.y, right: inner.right, bottom: inner.bottom },
+      };
+    });
+    expect(inner.x).toBeGreaterThan(outer.x);
+    expect(inner.right).toBeLessThan(outer.right);
+    expect(inner.y).toBeGreaterThan(outer.y);
+    expect(inner.bottom).toBeLessThan(outer.bottom);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
