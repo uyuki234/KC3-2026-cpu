@@ -494,6 +494,8 @@ test('ROMのTipsを開くと各行の説明と入れ子のループ枠を読め�
   await expect(wait.locator('.rom-tip-row')).toHaveCount(2);
   await expect(blink.locator('.rom-tip-row')).toHaveCount(3);
   await expect(wait).toContainText('桁上がりしたら5番地へ進みます');
+  await expect(wait).toContainText('タイマーの待ち時間を長くするため');
+  await expect(wait).toContainText('この間、LEDに表示するBの値は変わりません。');
   await expect(count).toContainText('桁上がりしたら7番地へ進みます');
   await expect(blink).toContainText('必ず7番地に戻ります');
   await expect(tips).toContainText('指定していない10〜15番地');

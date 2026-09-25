@@ -46,6 +46,9 @@ export default function RomTips() {
           <Instruction addr={2} />
           <section className="rom-loop wait-loop" aria-labelledby="rom-wait-loop">
             <h4 id="rom-wait-loop">3〜4番地 · 待ち時間</h4>
+            <p>
+              タイマーの待ち時間を長くするため、あえてLEDの表示を変えない計算を繰り返しています。命令の実行に時間がかかることを利用した、いわば「時間を使うためのループ」です。この間、LEDに表示するBの値は変わりません。
+            </p>
             <Instruction addr={3} />
             <Instruction addr={4} />
           </section>
