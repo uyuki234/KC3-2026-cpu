@@ -463,6 +463,58 @@ test('ボタンは取り消し・配布コードの順で、ROMは左0〜7・右
   await page.locator('.live-rom').screenshot({ path: 'test-results/rom-columns-mobile.png' });
 });
 
+test('ROMのTipsを開くと各行の説明と入れ子のループ枠を読める', async ({ page }) => {
+  await page.goto('./');
+  const tips = page.locator('.rom-tips');
+  const summary = tips.locator('summary');
+  await expect(summary).toHaveText('Tips：配布ROMを1行ずつ読む');
+  await expect(tips.locator('.rom-tip-row').first()).not.toBeVisible();
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(tips.locator('.rom-tip-row')).toHaveCount(10);
+  await expect(tips.locator('.rom-tip-row dt code')).toHaveText([
+    'IN B',
+    'OUT B',
+    'MOV A, 13',
+    'ADD A, 1',
+    'JNC 3',
+    'ADD B, 1',
+    'JNC 1',
+    'OUT 0',
+    'OUT 15',
+    'JMP 7',
+  ]);
+  await expect(tips.locator('.rom-tip-row dt span')).toHaveText(
+    Array.from({ length: 10 }, (_, i) => `${i}番地`),
+  );
+  const count = tips.getByRole('region', { name: '1〜6番地 · 数え上げ', exact: true });
+  const wait = count.getByRole('region', { name: '3〜4番地 · 待ち時間', exact: true });
+  const blink = tips.getByRole('region', { name: '7〜9番地 · 終了後の点滅', exact: true });
+  await expect(count.locator('.rom-tip-row')).toHaveCount(6);
+  await expect(wait.locator('.rom-tip-row')).toHaveCount(2);
+  await expect(blink.locator('.rom-tip-row')).toHaveCount(3);
+  await expect(wait).toContainText('桁上がりしたら5番地へ進みます');
+  await expect(count).toContainText('桁上がりしたら7番地へ進みます');
+  await expect(blink).toContainText('必ず7番地に戻ります');
+  await expect(tips).toContainText('指定していない10〜15番地');
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(wait).toBeVisible();
+    const outer = await count.boundingBox();
+    const inner = await wait.boundingBox();
+    expect(inner!.x).toBeGreaterThan(outer!.x);
+    expect(inner!.x + inner!.width).toBeLessThan(outer!.x + outer!.width);
+    expect(inner!.y).toBeGreaterThan(outer!.y);
+    expect(inner!.y + inner!.height).toBeLessThan(outer!.y + outer!.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    if (width !== 320) await tips.screenshot({ path: `test-results/rom-tips-${width}.png` });
+  }
+  await summary.click();
+  await expect(tips.locator('.rom-tip-row').first()).not.toBeVisible();
+});
+
 test('未完成のCPUや別のROMでは不正確な残り時間を表示しない', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: '入力ビット0' }).click();

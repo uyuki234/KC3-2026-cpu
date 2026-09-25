@@ -546,6 +546,56 @@ thead {
 .rom-description button {
   color: #617653;
 }
+.rom-tips {
+  margin-top: 16px;
+  padding: 2px 12px;
+}
+.rom-tip-row {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.rom-tip-row dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-weight: 600;
+}
+.rom-tip-row dt span {
+  min-width: 3em;
+}
+.rom-tip-row dd {
+  margin: 4px 0 0;
+}
+.rom-loop {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #cedaec;
+  border-radius: 6px;
+  background: #f3f7fd;
+}
+.rom-loop h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #243e63;
+}
+.wait-loop {
+  border-color: #dcd3eb;
+  background: #f6f2fa;
+}
+.wait-loop h4 {
+  color: #513a70;
+}
+.blink-loop {
+  border-color: #d1dfce;
+  background: #f3f8f1;
+}
+.blink-loop h4 {
+  color: #35542d;
+}
 .cpu-view {
   min-width: 0;
 }

@@ -15,6 +15,7 @@ import {
 } from './td4';
 import { loadProject, storageKey, validateProject, type Project } from './storage';
 import ResourceIcon from './ResourceIcon';
+import RomTips from './RomTips';
 import { initialTimerSteps, isTimerRom, timerSeconds, type Countdown } from './countdown';
 const Editor = lazy(() => import('./Editor'));
 type Notice = { message: string; target?: 'cpu' | 'rom'; line?: number };
@@ -658,6 +659,7 @@ export default function App() {
                   たとえば、<code>8'b1011_0101</code> は、LEDに5を表示する命令 <code>OUT 5</code>{' '}
                   です。
                 </p>
+                <RomTips />
               </div>
             </section>
             <section className="cpu-view">
