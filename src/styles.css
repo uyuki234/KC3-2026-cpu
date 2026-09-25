@@ -130,7 +130,8 @@ main {
   min-width: 0;
 }
 .intro-description {
-  font-size: 18px;
+  font-size: 21px;
+  font-weight: 700;
   line-height: 1.9;
   margin: 0;
 }
@@ -688,7 +689,8 @@ thead {
   font-size: 12px;
 }
 .inputs {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
@@ -697,6 +699,40 @@ thead {
   padding: 18px;
   border-radius: 8px;
   margin-bottom: 18px;
+}
+.input-description {
+  grid-column: 1 / -1;
+}
+.timer-readout {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 6px;
+}
+.timer-readout > span {
+  display: block;
+  font-size: 12px;
+}
+.timer-readout strong {
+  display: block;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.timer-readout.finished {
+  background: #edf7ed;
+  color: #285a35;
+}
+.timer-light {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #4b824e;
+  opacity: 0.2;
+}
+.timer-light.lit {
+  opacity: 1;
 }
 .inputs h3 {
   font-size: 14px;
@@ -1020,7 +1056,6 @@ footer {
   }
   .inputs p {
     font-size: 12px;
-    max-width: 150px;
   }
   .switches {
     gap: 5px;

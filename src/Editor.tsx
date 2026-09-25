@@ -76,6 +76,7 @@ export default function Editor({
         view.dispatch({
           changes: { from: 0, to: view.state.doc.length, insert: normalized },
           annotations: isolateHistory.of('full'),
+          effects: view.scrollSnapshot(),
         });
       } finally {
         syncing.current = false;

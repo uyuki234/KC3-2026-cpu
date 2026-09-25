@@ -7,6 +7,8 @@ import {
   type State,
 } from './td4';
 import { SvError } from './sv';
+import { createCountdown } from './countdown';
+let advanceCountdown = createCountdown([]);
 let cpu: ReturnType<typeof compileCpu> | undefined,
   rom: number[] = [],
   current: State = resetState();
@@ -38,6 +40,7 @@ function start() {
       self.postMessage({
         type: 'frame',
         frame: { cycle: ++cycle, before, after: current, byte, input },
+        countdown: advanceCountdown(before, current, byte, input),
       });
     } catch (e) {
       fail(e);
@@ -63,6 +66,7 @@ self.onmessage = ({ data }) => {
         return;
       }
       current = resetState();
+      advanceCountdown = createCountdown(rom);
       cycle = 0;
       input = data.input;
       speed = data.speed;

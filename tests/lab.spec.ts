@@ -10,8 +10,13 @@ test('配布コードの4つの参考命令と、解答の12命令を検証で�
   await page.goto('./');
   await expect(page.getByRole('button', { name: /1命令進/ })).toHaveCount(0);
   await expect(page.getByRole('banner')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Verilogで学ぶCPU自作入門');
+  await expect(page.getByText('4 BIT CPU / 12 INSTRUCTIONS')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /実行画面へ/ })).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: /保存用JSON|読み込む|rom.svをダウンロード/ }),
+    page.getByRole('button', {
+      name: /保存用JSON|読み込む|rom.svをダウンロード|cpu.svをダウンロード/,
+    }),
   ).toHaveCount(0);
   await expect(page.getByRole('link', { name: /X.*作者SNS/ })).toHaveAttribute(
     'href',
@@ -294,6 +299,126 @@ test('解答を挿入できないときはコードを保持して通知する',
   await page.getByRole('button', { name: 'ADD A, Imの解答を入れる', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('コードは変更していません');
   await expect(editor).toHaveText(invalid);
+});
+
+for (const width of [1440, 390]) {
+  test(`解答挿入は画面・フォーカス・過去の結果を保ち、自動テストしない (${width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(() => {
+      const original = Worker.prototype.postMessage;
+      Worker.prototype.postMessage = function (message, options) {
+        if (message.type === 'test')
+          document.documentElement.dataset.testRequests = String(
+            Number(document.documentElement.dataset.testRequests || 0) + 1,
+          );
+        return original.call(this, message, options as Transferable[]);
+      };
+    });
+    await page.goto('./');
+    await page.getByRole('button', { name: 'すべての命令をテスト' }).click();
+    await expect(page.getByTestId('completion')).toHaveText('4 / 12');
+    await expect(page.getByRole('button', { name: 'すべての命令をテスト' })).toBeEnabled();
+    const scroller = page.locator('.cpu-workspace .cm-scroller');
+    await scroller.evaluate((el) => {
+      el.scrollTop = 70;
+      el.scrollLeft = 80;
+    });
+    const button = page.getByRole('button', { name: 'OUT Imの解答を入れる', exact: true });
+    await button.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(200);
+    const before = await page.evaluate(() => window.scrollY);
+    const scrollBefore = await scroller.evaluate((el) => ({
+      top: el.scrollTop,
+      left: el.scrollLeft,
+    }));
+    await button.click();
+    await expect(button).toBeFocused();
+    await expect(page.getByRole('textbox', { name: 'CPUのalways_comb' })).toContainText(
+      'next_out = imm;',
+    );
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    expect(await scroller.evaluate((el) => ({ top: el.scrollTop, left: el.scrollLeft }))).toEqual(
+      scrollBefore,
+    );
+    await expect(page.getByTestId('completion')).toHaveText('4 / 12');
+    await expect(page.getByTestId('instruction-11')).toHaveClass(/failed/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-requests', '1');
+    await page.getByRole('button', { name: 'OUT Imをテスト', exact: true }).click();
+    await expect(page.getByTestId('instruction-11')).toHaveClass(/passed/);
+    await expect(page.getByTestId('completion')).toHaveText('5 / 12');
+  });
+}
+
+test('残り時間は実行・停止・速度変更に連動し、0秒でLEDと一緒に点滅する', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('textbox', { name: 'CPUのalways_comb' }).fill(answer);
+  const speed = page.getByRole('combobox', { name: '実行速度' });
+  const remaining = page.getByTestId('remaining-time');
+  await speed.selectOption('1000');
+  await expect(remaining).toHaveText('162秒');
+  for (let bit = 0; bit < 4; bit++)
+    await page.getByRole('button', { name: `入力ビット${bit}` }).click();
+  await expect(remaining).toHaveText('12秒');
+  await page.getByRole('button', { name: '▷ 実行', exact: true }).click();
+  await expect(page.getByTestId('register-out')).toHaveText('15');
+  await expect(remaining).not.toHaveText('0秒');
+  await page.getByRole('button', { name: '停止', exact: true }).click();
+  await expect(page.locator('.run-indicator')).toHaveText('STOPPED');
+  const steps = Number((await page.getByTestId('cycle').innerText()).split(' ')[0]);
+  await expect(remaining).toHaveText(`${12 - steps}秒`);
+  await page.waitForTimeout(1100);
+  await expect(remaining).toHaveText(`${12 - steps}秒`);
+  await page.getByRole('button', { name: '入力ビット0' }).click();
+  await expect(remaining).toHaveText(`${12 - steps}秒`);
+  await speed.selectOption('100');
+  await expect(remaining).toHaveText(`${Math.ceil((12 - steps) / 10)}秒`);
+  await page.getByRole('button', { name: '▷ 再開', exact: true }).click();
+  await expect(remaining).toHaveText('0秒');
+  await expect(page.getByTestId('timer')).toContainText('時間です');
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const output = document.querySelector('[data-testid="register-out"]')?.textContent;
+        return output === '15' && document.querySelector('.timer-light')?.classList.contains('lit');
+      }),
+    )
+    .toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const output = document.querySelector('[data-testid="register-out"]')?.textContent;
+        return output === '0' && !document.querySelector('.timer-light')?.classList.contains('lit');
+      }),
+    )
+    .toBe(true);
+  await page.getByRole('button', { name: '停止', exact: true }).click();
+  await page.locator('.inputs').screenshot({ path: 'test-results/timer-desktop.png' });
+  for (const width of [320, 390, 768, 1024]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.inputs').screenshot({ path: 'test-results/timer-mobile.png' });
+  await page.getByRole('button', { name: 'リセット', exact: true }).click();
+  await speed.selectOption('1000');
+  await expect(remaining).toHaveText('22秒');
+});
+
+test('未完成のCPUや別のROMでは不正確な残り時間を表示しない', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: '入力ビット0' }).click();
+  await page.getByRole('combobox', { name: '実行速度' }).selectOption('100');
+  await page.getByRole('button', { name: '▷ 実行', exact: true }).click();
+  await expect(page.getByTestId('remaining-time')).toHaveText('—');
+  await expect(page.getByTestId('timer')).toContainText('命令の動作を確認してください');
+  await page.getByRole('textbox', { name: 'ROMコード' }).fill(shortRom);
+  await expect(page.getByTestId('remaining-time')).toHaveText('—');
+  await expect(page.getByTestId('timer')).toContainText('配布ROMで利用できます');
 });
 
 test('狭い画面でも文字と解答ボタン、4つのリンクが収まる', async ({ page }) => {

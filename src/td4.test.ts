@@ -4,7 +4,6 @@ import {
   answerCode,
   compileCpu,
   compileRom,
-  cpuDownload,
   initialCode,
   initialRom,
   insertAnswer,
@@ -156,10 +155,6 @@ describe('公開ROMとシミュレーション', () => {
     expect(() =>
       compileRom(initialRom.replace('endmodule', 'initial data=0; endmodule')),
     ).toThrow();
-  });
-  it('ダウンロード用CPUは固定ポート宣言を正し、参加者コードを組み込む', () => {
-    expect(cpuDownload(initialCode)).not.toMatch(/led\s*;/);
-    expect(cpuDownload(initialCode)).toContain("4'b0000: ; // ADD A, IMM");
   });
 });
 describe('SystemVerilogの対応範囲', () => {

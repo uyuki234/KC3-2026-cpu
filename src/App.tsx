@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
   binary,
-  cpuDownload,
+  compileRom,
   hex,
   initialCode,
   initialRom,
@@ -15,22 +15,10 @@ import {
 } from './td4';
 import { loadProject, storageKey, validateProject, type Project } from './storage';
 import ResourceIcon from './ResourceIcon';
+import { initialTimerSteps, isTimerRom, timerSeconds, type Countdown } from './countdown';
 const Editor = lazy(() => import('./Editor'));
 type Notice = { message: string; target?: 'cpu' | 'rom'; line?: number };
 const newWorker = () => new Worker(new URL('./lab.worker.ts', import.meta.url), { type: 'module' });
-function download(name: string, content: string) {
-  const url = URL.createObjectURL(
-    new Blob([content], {
-      type: 'text/plain;charset=utf-8',
-    }),
-  );
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 export default function App() {
   const [loaded] = useState(loadProject),
     [project, setProject] = useState(loaded.project);
@@ -49,6 +37,20 @@ export default function App() {
   const [backup, setBackup] = useState<Project>(),
     [location, setLocation] = useState<{ target: string; line: number; key: number }>();
   const [fullscreen, setFullscreen] = useState(false);
+  const [countdown, setCountdown] = useState<Countdown>();
+  const timerSupported = useMemo(() => {
+    try {
+      return isTimerRom(compileRom(project.rom));
+    } catch {
+      return false;
+    }
+  }, [project.rom]);
+  const remaining =
+    !timerSupported || countdown?.kind === 'unavailable'
+      ? undefined
+      : timerSeconds(countdown?.steps ?? initialTimerSteps(input), speed);
+  const timerFinished = countdown?.kind === 'finished';
+
   const cpuWorkspace = useRef<HTMLDivElement>(null),
     fullscreenButton = useRef<HTMLButtonElement>(null);
   const testWorker = useRef<Worker | null>(null),
@@ -141,6 +143,7 @@ export default function App() {
     setReady(false);
     setPreparing(false);
     setFrame(undefined);
+    setCountdown(undefined);
     setRomBytes([]);
     setHistory([]);
   }
@@ -230,6 +233,7 @@ export default function App() {
         setRomBytes(data.rom);
       } else if (data.type === 'frame') {
         setFrame(data.frame);
+        setCountdown(data.countdown);
         setHistory((h) => [...h.slice(-15), data.frame]);
       } else if (data.type === 'stopped') setRunning(false);
       else if (data.type === 'running') setRunning(true);
@@ -240,6 +244,7 @@ export default function App() {
         setRunning(false);
         setPreparing(false);
         setReady(false);
+        setCountdown({ kind: 'unavailable', reason: 'cpu' });
         setNotice({
           message: `実行できません — ${data.message}`,
           target: data.target,
@@ -271,10 +276,9 @@ export default function App() {
       const answer = insertAnswer(project.cpu, op);
       if (answer.source !== project.cpu) {
         setBackup(project);
-        change('cpu', answer.source);
+        invalidateRun();
+        setProject((current) => ({ ...current, cpu: answer.source }));
       }
-      setLocation({ target: 'cpu', line: answer.line, key: Date.now() });
-      document.getElementById('cpu-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
       setNotice({
         message: `解答を入れられませんでした。コードは変更していません。 ${error instanceof Error ? error.message : String(error)}`,
@@ -288,13 +292,12 @@ export default function App() {
         <section className="intro">
           <div className="intro-copy">
             <h1>
-              <span>VERILOGで学ぶ</span>
+              <span>Verilogで学ぶ</span>
               <wbr />
               <span>CPU自作入門</span>
             </h1>
             <p className="intro-description">「CPUの自作」を体験しよう！</p>
             <div className="intro-guide">
-              <span className="edition">4 BIT CPU / 12 INSTRUCTIONS</span>
               <ol>
                 <li>
                   <b>01</b> 命令表を見ながらコードを書く
@@ -306,7 +309,6 @@ export default function App() {
                   <b>03</b> ROMを実行してLEDを観察する
                 </li>
               </ol>
-              <a href="#simulator">実行画面へ ↓</a>
             </div>
             <nav className="resource-links" aria-label="講義の関連リンク">
               <a
@@ -378,20 +380,6 @@ export default function App() {
             )}
             <button aria-label="通知を閉じる" onClick={() => setNotice({ message: '' })}>
               ×
-            </button>
-          </div>
-        )}
-        {backup && (
-          <div className="undo">
-            <button
-              onClick={() => {
-                const previous = backup;
-                replace(previous);
-                setBackup(undefined);
-                setNotice({ message: '置き換える前のコードに戻しました。' });
-              }}
-            >
-              置き換えを取り消す
             </button>
           </div>
         )}
@@ -474,8 +462,17 @@ export default function App() {
               <button onClick={() => replace({ ...project, cpu: initialCode })}>
                 配布コードに戻す
               </button>
-              <button onClick={() => download('cpu.sv', cpuDownload(project.cpu))}>
-                cpu.svをダウンロード ↗
+              <button
+                style={{ visibility: backup ? 'visible' : 'hidden' }}
+                disabled={!backup}
+                onClick={() => {
+                  if (!backup) return;
+                  replace(backup);
+                  setBackup(undefined);
+                  setNotice({ message: '置き換える前のコードに戻しました。' });
+                }}
+              >
+                置き換えを取り消す
               </button>
             </div>
             <div className="hints">
@@ -489,7 +486,7 @@ export default function App() {
                 </summary>
                 <p>
                   <code>next_b = a;</code>{' '}
-                  は、今のAを「次にBへ記憶する値」にします。記憶する処理は用意済みです。共通処理で値を決めてから、命令に応じて必要なものだけ上書きします。
+                  は、今のAを「次にBへ記憶する値」にします。記憶する処理は用意済みです。共通処理で値を決めた後に、命令に応じて必要なものだけ上書きします。
                 </p>
               </details>
               <details>
@@ -537,7 +534,7 @@ export default function App() {
                 </p>
                 <p>
                   命令コードには <code>opcode</code>{' '}
-                  を使います。CPU全体のダウンロードには、用意済みの同期リセットと記憶処理が含まれます。
+                  を使います。記憶処理は用意済みなので、次の値を決める処理を記述します。
                 </p>
               </details>
             </div>
@@ -557,6 +554,8 @@ export default function App() {
               期待した次の値になるか、命令ごとに確認。
               <br />
               「参考」の4命令も編集・テストできます。
+              <br />
+              正解を見たいときは「解答を入れる」を押すと、その命令の解答がコードに反映されます。
             </p>
             <div className="instruction-list">
               {instructions.map((i) => {
@@ -639,7 +638,10 @@ export default function App() {
               <div className="rom-description">
                 <h3>配布ROMの動き</h3>
                 <p>
-                  最初にスイッチの値をBに読み込みます。待ちループを挟みながらBを増やしてLEDへ出力し、桁上がり後は全消灯と全点灯を繰り返します。
+                  スイッチで数え始める値を設定できるタイマーです。LEDの数字が増えるにつれて、残り時間が減ります。15を超えると残り時間が0になり、LEDと時間表示の点滅で終了を知らせます。
+                </p>
+                <p>
+                  速度が「1命令／秒」のとき、開始から終了までの時間は約12〜162秒です。スイッチの値が大きいほど短くなります。途中でスイッチを変更した場合は、リセットして実行し直すと反映されます。
                 </p>
                 <p>
                   番地は0〜15、命令は8bit。たとえば <code>8'b1011_0101</code> は <code>OUT 5</code>
@@ -721,9 +723,43 @@ export default function App() {
                 </label>
               </div>
               <div className="inputs">
-                <div>
+                <div className="input-description">
                   <h3>入力スイッチ</h3>
-                  <p>IN命令が、この時点の値を読みます。</p>
+                  <p>
+                    数え始める値を設定します。値が大きいほど、LEDが点滅するまでの待ち時間が短くなります。実行前に設定してください。
+                  </p>
+                </div>
+                <div
+                  className={`timer-readout ${timerFinished ? 'finished' : ''}`}
+                  data-testid="timer"
+                >
+                  <span>残り時間（目安）</span>
+                  <strong data-testid="remaining-time">
+                    {remaining === undefined ? '—' : `${remaining}秒`}
+                  </strong>
+                  <span role="status">
+                    {timerFinished ? (
+                      <>
+                        <i
+                          className={`timer-light ${state.out === 15 ? 'lit' : ''}`}
+                          aria-hidden="true"
+                        />
+                        時間です
+                      </>
+                    ) : !timerSupported ? (
+                      '配布ROMで利用できます'
+                    ) : countdown?.kind === 'unavailable' ? (
+                      '命令の動作を確認してください'
+                    ) : preparing ? (
+                      '準備中…'
+                    ) : !frame ? (
+                      '実行前'
+                    ) : running ? (
+                      'カウント中'
+                    ) : (
+                      '停止中'
+                    )}
+                  </span>
                 </div>
                 <div className="switches">
                   {[3, 2, 1, 0].map((bit) => (

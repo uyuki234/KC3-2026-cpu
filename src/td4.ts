@@ -62,11 +62,6 @@ function createInitialCode(compact: boolean) {
 export const initialCode = createInitialCode(true);
 export const legacyInitialCode = createInitialCode(false);
 export const initialRom = originalRom.replaceAll('\r\n', '\n');
-export const cpuDownload = (comb: string) =>
-  originalCpu.slice(0, combStart).replace(/(output\s+logic\s+\[3:0\]\s+led)\s*;/, '$1') +
-  '    ' +
-  comb.trim().replaceAll('\n', '\n    ') +
-  '\nendmodule\n';
 const signals: Signals = {
   a: { width: 4 },
   b: { width: 4 },
